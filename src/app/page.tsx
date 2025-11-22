@@ -86,15 +86,6 @@ export default async function Home() {
         <p className="mt-4 text-sm md:text-base text-muted-foreground">
           基于 Next.js SSG/ISR 与 Supabase 的单位字典与转换演示。
         </p>
-        <div style={{ marginTop: 24 }}>
-          <Link href="/db" style={{
-            display: "inline-block",
-            padding: "8px 14px",
-            border: "1px solid #ddd",
-            borderRadius: 6,
-            textDecoration: "none"
-          }}>查看数据</Link>
-        </div>
       </section>
 
       <section style={{ marginTop: 32 }}>

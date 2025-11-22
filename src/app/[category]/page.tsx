@@ -114,7 +114,9 @@ export async function generateStaticParams() {
 
       const outDir = path.join(process.cwd(), "public", "data", encodeURIComponent(category));
       try { fs.mkdirSync(outDir, { recursive: true }); } catch {}
-      fs.writeFileSync(path.join(outDir, "aside.json"), JSON.stringify({ symbols, logs, names }));
+      const payload = { symbols, logs, names };
+      fs.writeFileSync(path.join(outDir, "aside.json"), JSON.stringify(payload));
+      fs.writeFileSync(path.join(outDir, "guess.json"), JSON.stringify(payload));
     } catch {}
   }
   
@@ -151,6 +153,34 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
     (data as Array<{ unit_symbol: string; name: string }> | null)?.forEach((r) => {
       if (r.unit_symbol && r.name && !(r.unit_symbol in names)) names[r.unit_symbol] = r.name;
     });
+  }
+  // 回退到静态 JSON（构建阶段已生成），确保在无 Supabase 数据或受 RLS 限制时依然展示
+  if (symbols.length === 0) {
+    try {
+      const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
+      const rawGuess = fs.readFileSync(pGuess, "utf-8");
+      const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
+      if (Array.isArray(jsonGuess.symbols)) {
+        jsonGuess.symbols.forEach((s) => { if (s) symbols.push(s); });
+      }
+      if (jsonGuess.names && typeof jsonGuess.names === "object") {
+        names = { ...names, ...jsonGuess.names };
+      }
+    } catch {}
+    if (symbols.length === 0) {
+      try {
+        const pAside = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "aside.json");
+        const rawAside = fs.readFileSync(pAside, "utf-8");
+        const jsonAside = JSON.parse(rawAside) as { symbols?: string[]; names?: Record<string, string> };
+        if (Array.isArray(jsonAside.symbols)) {
+          jsonAside.symbols.forEach((s) => { if (s) symbols.push(s); });
+        }
+        if (jsonAside.names && typeof jsonAside.names === "object") {
+          names = { ...names, ...jsonAside.names };
+        }
+      } catch {}
+    }
+    symbols.sort();
   }
   let categoryTitle = category;
   const { data: catRows } = await supabase
