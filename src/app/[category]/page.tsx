@@ -55,7 +55,9 @@ export async function generateStaticParams() {
     .eq("is_active", true)
     .limit(100);
   
-  const categories = Array.from(new Set(data?.map((item) => item.category) || []));
+  const supaCats = Array.from(new Set(data?.map((item) => item.category) || []));
+  const articleCats = Object.keys(CATEGORY_ARTICLES);
+  const categories = Array.from(new Set([...supaCats, ...articleCats]));
   
   for (const category of categories) {
     try {
