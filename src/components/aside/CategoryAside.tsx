@@ -7,40 +7,15 @@ import { supabase } from "@/lib/supabase";
 import type { UnitConversionLog } from "@/lib/types";
 
 async function fetchSymbols(cat: string): Promise<string[]> {
-  const { data } = await supabase
-    .from("unit_dictionary")
-    .select("symbol")
-    .eq("category", cat)
-    .order("symbol", { ascending: true })
-    .limit(200);
-  const set = new Set<string>();
-  (data as Array<{ symbol: string }> | null)?.forEach((r) => { if (r.symbol) set.add(r.symbol); });
-  return Array.from(set).sort();
+  const res = await fetch(`/api/category/symbols?category=${encodeURIComponent(cat)}`);
+  if (!res.ok) return [];
+  return (await res.json()) as string[];
 }
 
-async function fetchRecentLogs(symbols: string[], limit = 20): Promise<UnitConversionLog[]> {
-  if (symbols.length === 0) return [] as UnitConversionLog[];
-  const sel = "from_unit,input_value,to_unit,output_value,lang_code,conversion_count,first_seen_at,last_seen_at";
-  const { data: a } = await supabase
-    .from("unit_conversion_logs")
-    .select(sel)
-    .in("from_unit", symbols)
-    .order("last_seen_at", { ascending: false })
-    .limit(limit);
-  const { data: b } = await supabase
-    .from("unit_conversion_logs")
-    .select(sel)
-    .in("to_unit", symbols)
-    .order("last_seen_at", { ascending: false })
-    .limit(limit);
-  const map = new Map<string, UnitConversionLog>();
-  [...((a ?? []) as UnitConversionLog[]), ...((b ?? []) as UnitConversionLog[])].forEach((r) => {
-    const k = `${r.from_unit}-${r.input_value}-${r.to_unit}-${r.output_value}-${r.lang_code}`;
-    if (!map.has(k)) map.set(k, r);
-  });
-  return Array.from(map.values())
-    .sort((x, y) => String(y.last_seen_at).localeCompare(String(x.last_seen_at)))
-    .slice(0, 20);
+async function fetchRecentLogs(category: string, limit = 20): Promise<UnitConversionLog[]> {
+  const res = await fetch(`/api/category/recent?category=${encodeURIComponent(category)}&limit=${limit}`);
+  if (!res.ok) return [] as UnitConversionLog[];
+  return (await res.json()) as UnitConversionLog[];
 }
 
 export default function CategoryAside({ title, category }: { title?: string; category: string }) {
@@ -54,7 +29,7 @@ export default function CategoryAside({ title, category }: { title?: string; cat
       setLoading(true);
       try {
         const symbols = await fetchSymbols(category);
-        const recent = await fetchRecentLogs(symbols);
+        const recent = await fetchRecentLogs(category);
         if (!cancelled) setLogs(recent);
 
         const units = Array.from(new Set([
@@ -63,18 +38,8 @@ export default function CategoryAside({ title, category }: { title?: string; cat
           ...recent.map((r) => r.to_unit),
         ]));
         if (units.length) {
-          const { data } = await supabase
-            .from("unit_localizations")
-            .select("unit_symbol,lang_code,name")
-            .in("unit_symbol", units)
-            .in("lang_code", ["zh", "zh-CN"])
-            .limit(2000);
-          const m: Record<string, string> = {};
-          (data as Array<{ unit_symbol: string; name: string }> | null)?.forEach((r) => {
-            const k = r.unit_symbol as string;
-            const nm = r.name as string;
-            if (k && nm && !(k in m)) m[k] = nm;
-          });
+          const res = await fetch(`/api/units/names?symbols=${encodeURIComponent(units.join(','))}&lang=zh`);
+          const m = res.ok ? ((await res.json()) as Record<string, string>) : {};
           if (!cancelled) setNamesMap(m);
         } else {
           if (!cancelled) setNamesMap({});

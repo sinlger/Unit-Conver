@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabaseServer";
 import ConversionCard from "@/components/units/ConversionCard";
 import CategoryAside from "@/components/aside/CategoryAside";
 import GuessYouLike from "@/components/recommend/GuessYouLike";
@@ -47,7 +47,7 @@ export const revalidate = 3600; // 1小时
 
 // 生成静态参数，用于SSG
 export async function generateStaticParams() {
-  const { data } = await supabase
+  const { data } = await supabaseServer
     .from("unit_dictionary")
     .select("category")
     .eq("is_active", true)
@@ -63,7 +63,7 @@ export async function generateStaticParams() {
 type Row = { symbol: string; category: string; is_active: boolean | null };
 
 async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseServer
     .from("unit_dictionary")
     .select("symbol,category,is_active")
     .eq("category", cat)
@@ -79,7 +79,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
   const symbols = Array.from(new Set(rows.map((r) => r.symbol))).sort();
   let names: Record<string, string> = {};
   if (symbols.length > 0) {
-    const { data } = await supabase
+    const { data } = await supabaseServer
       .from("unit_localizations")
       .select("unit_symbol,lang_code,name")
       .in("unit_symbol", symbols)
@@ -90,7 +90,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
     });
   }
   let categoryTitle = category;
-  const { data: catRows } = await supabase
+  const { data: catRows } = await supabaseServer
     .from("unit_dictionary")
     .select("category,category_zh")
     .eq("category", category)
