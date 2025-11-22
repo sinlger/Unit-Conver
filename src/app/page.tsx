@@ -1,5 +1,27 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import type { Metadata } from "next";
+import { StructuredData } from "@/components/structured-data/StructuredData";
+import { 
+  createSoftwareAppSchema, 
+  createFAQSchema 
+} from "@/components/structured-data/StructuredData";
+
+// ISR配置 - 首页每24小时重新验证
+export const revalidate = 86400; // 24小时
+
+// 首页SEO配置
+export const metadata: Metadata = {
+  title: "单位转换器 | Unit Converter",
+  description: "专业的单位转换工具，支持长度、面积、体积、质量、温度等多种物理量单位转换。基于Next.js ISR技术，提供快速准确的转换服务。",
+  keywords: ["单位转换", "长度转换", "面积转换", "体积转换", "质量转换", "温度转换"],
+  openGraph: {
+    title: "单位转换器",
+    description: "专业的单位转换工具，支持多种物理量单位转换",
+    type: "website",
+    locale: "zh_CN",
+  },
+};
 
 type Row = { symbol: string; category: string; category_zh: string | null; is_active: boolean | null };
 
@@ -35,6 +57,10 @@ export default async function Home() {
       catSymbols.set(r.category, list);
     }
   });
+
+  // 创建结构化数据
+  const softwareAppSchema = createSoftwareAppSchema();
+  const faqSchema = createFAQSchema();
   const allSymbols = Array.from(new Set(rows.map((r) => r.symbol))).slice(0, 2000);
   const namesMap: Record<string, string> = {};
   if (allSymbols.length) {
@@ -53,6 +79,8 @@ export default async function Home() {
 
   return (
     <div style={{ margin: "0 auto", maxWidth: 1024, padding: "56px 24px" }}>
+      <StructuredData data={softwareAppSchema} />
+      <StructuredData data={faqSchema} />
       <section className="text-center">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Unit Conver</h1>
         <p className="mt-4 text-sm md:text-base text-muted-foreground">

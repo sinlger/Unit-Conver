@@ -5,7 +5,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Breadcrumb as UIBreadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
 
-export function Breadcrumb() {
+export default function Breadcrumb() {
   const pathname = usePathname() ?? "/";
   if (pathname === "/") return null;
   const parts = useMemo(() => pathname.split("/").filter(Boolean), [pathname]);
