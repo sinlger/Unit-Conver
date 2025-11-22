@@ -1,4 +1,6 @@
-import { supabaseServer } from "@/lib/supabaseServer";
+import { supabase } from "@/lib/supabase";
+import fs from "node:fs";
+import path from "node:path";
 import ConversionCard from "@/components/units/ConversionCard";
 import CategoryAside from "@/components/aside/CategoryAside";
 import GuessYouLike from "@/components/recommend/GuessYouLike";
@@ -47,13 +49,74 @@ export const revalidate = 3600; // 1小时
 
 // 生成静态参数，用于SSG
 export async function generateStaticParams() {
-  const { data } = await supabaseServer
+  const { data } = await supabase
     .from("unit_dictionary")
     .select("category")
     .eq("is_active", true)
     .limit(100);
   
   const categories = Array.from(new Set(data?.map((item) => item.category) || []));
+  
+  for (const category of categories) {
+    try {
+      const { data: symRows } = await supabase
+        .from("unit_dictionary")
+        .select("symbol")
+        .eq("category", category)
+        .order("symbol", { ascending: true })
+        .limit(200);
+      const symbols = Array.from(new Set((symRows ?? []).map((r: any) => r.symbol))).sort();
+
+      let logs: any[] = [];
+      if (symbols.length > 0) {
+        const sel = "from_unit,input_value,to_unit,output_value,lang_code,conversion_count,first_seen_at,last_seen_at";
+        const { data: a } = await supabase
+          .from("unit_conversion_logs")
+          .select(sel)
+          .in("from_unit", symbols)
+          .order("last_seen_at", { ascending: false })
+          .limit(20);
+        const { data: b } = await supabase
+          .from("unit_conversion_logs")
+          .select(sel)
+          .in("to_unit", symbols)
+          .order("last_seen_at", { ascending: false })
+          .limit(20);
+        const map = new Map<string, any>();
+        [...((a ?? []) as any[]), ...((b ?? []) as any[])].forEach((r: any) => {
+          const k = `${r.from_unit}-${r.input_value}-${r.to_unit}-${r.output_value}-${r.lang_code}`;
+          if (!map.has(k)) map.set(k, r);
+        });
+        logs = Array.from(map.values())
+          .sort((x: any, y: any) => String(y.last_seen_at).localeCompare(String(x.last_seen_at)))
+          .slice(0, 20);
+      }
+
+      const units = Array.from(new Set([
+        ...symbols,
+        ...logs.map((r: any) => r.from_unit),
+        ...logs.map((r: any) => r.to_unit),
+      ]));
+      let names: Record<string, string> = {};
+      if (units.length > 0) {
+        const { data: locs } = await supabase
+          .from("unit_localizations")
+          .select("unit_symbol,lang_code,name")
+          .in("unit_symbol", units)
+          .in("lang_code", ["zh", "zh-CN"])
+          .limit(2000);
+        (locs ?? []).forEach((r: any) => {
+          const k = r.unit_symbol as string;
+          const nm = r.name as string;
+          if (k && nm && !(k in names)) names[k] = nm;
+        });
+      }
+
+      const outDir = path.join(process.cwd(), "public", "data", encodeURIComponent(category));
+      try { fs.mkdirSync(outDir, { recursive: true }); } catch {}
+      fs.writeFileSync(path.join(outDir, "aside.json"), JSON.stringify({ symbols, logs, names }));
+    } catch {}
+  }
   
   return categories.map((category) => ({
     category: category,
@@ -63,7 +126,7 @@ export async function generateStaticParams() {
 type Row = { symbol: string; category: string; is_active: boolean | null };
 
 async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from("unit_dictionary")
     .select("symbol,category,is_active")
     .eq("category", cat)
@@ -79,7 +142,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
   const symbols = Array.from(new Set(rows.map((r) => r.symbol))).sort();
   let names: Record<string, string> = {};
   if (symbols.length > 0) {
-    const { data } = await supabaseServer
+    const { data } = await supabase
       .from("unit_localizations")
       .select("unit_symbol,lang_code,name")
       .in("unit_symbol", symbols)
@@ -90,7 +153,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
     });
   }
   let categoryTitle = category;
-  const { data: catRows } = await supabaseServer
+  const { data: catRows } = await supabase
     .from("unit_dictionary")
     .select("category,category_zh")
     .eq("category", category)

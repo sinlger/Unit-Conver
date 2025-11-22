@@ -3,19 +3,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemSeparator, ItemGroup } from "@/components/ui/item";
-import { supabase } from "@/lib/supabase";
 import type { UnitConversionLog } from "@/lib/types";
 
-async function fetchSymbols(cat: string): Promise<string[]> {
-  const res = await fetch(`/api/category/symbols?category=${encodeURIComponent(cat)}`);
-  if (!res.ok) return [];
-  return (await res.json()) as string[];
-}
-
-async function fetchRecentLogs(category: string, limit = 20): Promise<UnitConversionLog[]> {
-  const res = await fetch(`/api/category/recent?category=${encodeURIComponent(category)}&limit=${limit}`);
-  if (!res.ok) return [] as UnitConversionLog[];
-  return (await res.json()) as UnitConversionLog[];
+async function fetchAside(category: string): Promise<{ logs: UnitConversionLog[]; names: Record<string, string> }> {
+  try {
+    const res = await fetch(`/data/${encodeURIComponent(category)}/aside.json`, { cache: "force-cache" });
+    if (!res.ok) return { logs: [], names: {} };
+    const json = await res.json();
+    return { logs: (json?.logs ?? []) as UnitConversionLog[], names: (json?.names ?? {}) as Record<string, string> };
+  } catch {
+    return { logs: [], names: {} };
+  }
 }
 
 export default function CategoryAside({ title, category }: { title?: string; category: string }) {
@@ -28,21 +26,10 @@ export default function CategoryAside({ title, category }: { title?: string; cat
     const run = async () => {
       setLoading(true);
       try {
-        const symbols = await fetchSymbols(category);
-        const recent = await fetchRecentLogs(category);
-        if (!cancelled) setLogs(recent);
-
-        const units = Array.from(new Set([
-          ...symbols,
-          ...recent.map((r) => r.from_unit),
-          ...recent.map((r) => r.to_unit),
-        ]));
-        if (units.length) {
-          const res = await fetch(`/api/units/names?symbols=${encodeURIComponent(units.join(','))}&lang=zh`);
-          const m = res.ok ? ((await res.json()) as Record<string, string>) : {};
-          if (!cancelled) setNamesMap(m);
-        } else {
-          if (!cancelled) setNamesMap({});
+        const { logs, names } = await fetchAside(category);
+        if (!cancelled) {
+          setLogs(logs);
+          setNamesMap(names);
         }
       } finally {
         if (!cancelled) setLoading(false);

@@ -1,4 +1,4 @@
-import { supabaseServer } from "@/lib/supabaseServer";
+import { supabase } from "@/lib/supabase";
 import ConversionCard from "@/components/units/ConversionCard";
 import CategoryAside from "@/components/aside/CategoryAside";
 import GuessYouLike from "@/components/recommend/GuessYouLike";
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
   let toName = to;
   
   // 直接从数据库获取单位名称
-  const { data: unitData } = await supabaseServer
+  const { data: unitData } = await supabase
     .from("unit_localizations")
     .select("unit_symbol,lang_code,name")
     .in("unit_symbol", [from, to])
@@ -100,7 +100,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
 
 // 生成静态参数，用于SSG
 export async function generateStaticParams() {
-  const { data } = await supabaseServer
+  const { data } = await supabase
     .from("unit_dictionary")
     .select("category, symbol")
     .eq("is_active", true)
@@ -144,7 +144,7 @@ export async function generateStaticParams() {
 type Row = { symbol: string; category: string; is_active: boolean | null };
 
 async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from("unit_dictionary")
     .select("symbol,category,is_active")
     .eq("category", cat)
@@ -161,7 +161,7 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
   let names: Record<string, string> = {};
   let sources: Record<string, string> = {};
   if (symbols.length > 0) {
-    const { data } = await supabaseServer
+    const { data } = await supabase
       .from("unit_localizations")
       .select("unit_symbol,lang_code,name,source_description")
       .in("unit_symbol", symbols)
