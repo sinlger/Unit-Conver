@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Footer } from "@/components/layout/Footer";
 import BreadcrumbClient from "@/components/navigation/BreadcrumbClient";
 import { Toaster } from "@/components/ui/sonner";
@@ -71,15 +72,17 @@ export default function RootLayout({
         <StructuredData data={jsonLd} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-dvh flex flex-col`}>
-        <Header />
-        <main className="flex-1">
-          <div className="mx-auto max-w-5xl px-6 pt-4">
-            <BreadcrumbClient />
-          </div>
-          {children}
-        </main>
-        <Footer />
-        <Toaster />
+        <ThemeProvider>
+          <Header />
+          <main className="flex-1">
+            <div className="mx-auto max-w-5xl px-6 pt-4">
+              <BreadcrumbClient />
+            </div>
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

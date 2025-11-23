@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, NavigationMenuContent, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
@@ -10,18 +11,7 @@ import { supabase } from "@/lib/supabase";
 export function Header() {
   const pathname = usePathname();
   const [cats, setCats] = useState<Array<{ slug: string; label: string }>>([]);
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)").matches : false;
-    return stored ? stored === "dark" : prefersDark;
-  });
-  // no mounted state to satisfy lint rules
-
-  useEffect(() => {
-    const html = document.documentElement;
-    if (isDark) html.classList.add("dark"); else html.classList.remove("dark");
-  }, [isDark]);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     let cancelled = false;
@@ -48,14 +38,8 @@ export function Header() {
   }, []);
 
   const toggleDark = () => {
-    console.log('切换主题');
-    const next = !isDark;
-    const html = document.documentElement;
-    if (next) html.classList.add("dark"); else html.classList.remove("dark");
-    try { localStorage.setItem("theme", next ? "dark" : "light"); } catch {}
-    console.log('切换主题完成');
-    console.log('切换主题完成',localStorage.getItem("theme"));
-    setIsDark(next);
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
   };
 
   return (
