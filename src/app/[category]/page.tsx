@@ -9,31 +9,30 @@ import type { Metadata } from "next";
 import { StructuredData } from "@/components/structured-data/StructuredData";
 import { createConversionToolSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
 
+const CATEGORY_NAME_MAP: Record<string, string> = {
+  length: "长度",
+  area: "面积",
+  volume: "体积",
+  mass: "质量",
+  temperature: "温度",
+  pressure: "压力",
+  power: "功率",
+  speed: "速度",
+  frequency: "频率",
+  current: "电流",
+  voltage: "电压",
+  resistance: "电阻",
+  energy: "能量",
+  illuminance: "照度",
+  angle: "角度",
+  time: "时间",
+  digital: "数字存储",
+  volumeFlowRate: "流量",
+};
+
 export async function generateMetadata({ params }: { params: Promise<{ category?: string }> }): Promise<Metadata> {
   const { category = "" } = await params;
-  const categoryNames: Record<string, string> = {
-    length: "长度",
-    area: "面积", 
-    volume: "体积",
-    mass: "质量",
-    temperature: "温度",
-    pressure: "压力",
-    power: "功率",
-    speed: "速度",
-    frequency: "频率",
-    current: "电流",
-    voltage: "电压",
-    resistance: "电阻",
-    energy: "能量",
-    illuminance: "照度",
-    angle: "角度",
-    time: "时间",
-    digital: "数字存储",
-    volumeFlowRate: "流量"
-  };
-  
-  const categoryName = categoryNames[category] || category;
-  
+  const categoryName = CATEGORY_NAME_MAP[category] || category;
   return {
     title: `${categoryName}单位转换 | 单位转换器`,
     description: `专业的${categoryName}单位转换工具，支持各种${categoryName}单位之间的相互转换，如${categoryName}到${categoryName}、${categoryName}到${categoryName}等。`,
@@ -72,20 +71,16 @@ export async function generateStaticParams() {
       let logs: any[] = [];
       if (symbols.length > 0) {
         const sel = "from_unit,input_value,to_unit,output_value,lang_code,conversion_count,first_seen_at,last_seen_at";
-        const { data: a } = await supabaseServer
+        const list = symbols.map((s) => `${s}`);
+        const inExpr = list.join(",");
+        const { data: raw } = await supabaseServer
           .from("unit_conversion_logs")
           .select(sel)
-          .in("from_unit", symbols)
+          .or(`from_unit.in.(${inExpr}),to_unit.in.(${inExpr})`)
           .order("last_seen_at", { ascending: false })
-          .limit(20);
-        const { data: b } = await supabaseServer
-          .from("unit_conversion_logs")
-          .select(sel)
-          .in("to_unit", symbols)
-          .order("last_seen_at", { ascending: false })
-          .limit(20);
+          .limit(40);
         const map = new Map<string, any>();
-        [...((a ?? []) as any[]), ...((b ?? []) as any[])].forEach((r: any) => {
+        (raw ?? []).forEach((r: any) => {
           const k = `${r.from_unit}-${r.input_value}-${r.to_unit}-${r.output_value}-${r.lang_code}`;
           if (!map.has(k)) map.set(k, r);
         });
@@ -127,21 +122,7 @@ export async function generateStaticParams() {
   }));
 }
 
-type Row = { symbol: string; category: string; is_active: boolean | null };
-
-async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabaseServer
-    .from("unit_dictionary")
-    .select("symbol,category,is_active")
-    .eq("category", cat)
-    .order("symbol", { ascending: true })
-    .limit(500);
-  if (error) return [];
-  return (data as Row[]) ?? [];
-}
-
-export default async function ConvertCategoryPage({ params }: { params: Promise<{ category?: string }> }) {
-  const { category = "" } = await params;
+function readStatic(category: string): { symbols: string[]; names: Record<string, string> } {
   let symbols: string[] = [];
   let names: Record<string, string> = {};
   try {
@@ -160,7 +141,13 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
       if (jsonAside.names && typeof jsonAside.names === "object") names = { ...names, ...jsonAside.names };
     } catch {}
   }
-  let categoryTitle = category;
+  return { symbols, names };
+}
+
+export default async function ConvertCategoryPage({ params }: { params: Promise<{ category?: string }> }) {
+  const { category = "" } = await params;
+  const { symbols, names } = readStatic(category);
+  const categoryTitle = CATEGORY_NAME_MAP[category] || category;
 
   let ArticleComp: any = null;
   const loader = CATEGORY_ARTICLES[category];
@@ -170,28 +157,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
   }
 
   // 生成分类页面的结构化数据
-  const categoryNames: Record<string, string> = {
-    length: "长度",
-    area: "面积", 
-    volume: "体积",
-    mass: "质量",
-    temperature: "温度",
-    pressure: "压力",
-    power: "功率",
-    speed: "速度",
-    frequency: "频率",
-    current: "电流",
-    voltage: "电压",
-    resistance: "电阻",
-    energy: "能量",
-    illuminance: "照度",
-    angle: "角度",
-    time: "时间",
-    digital: "数字存储",
-    volumeFlowRate: "流量"
-  };
-  
-  const categoryName = categoryNames[category] || category;
+  const categoryName = CATEGORY_NAME_MAP[category] || category;
   
   // 创建转换工具结构化数据
   const webAppSchema = createConversionToolSchema(category, categoryName);

@@ -7,7 +7,10 @@ import type { UnitConversionLog } from "@/lib/types";
 
 async function fetchAside(category: string): Promise<{ logs: UnitConversionLog[]; names: Record<string, string> }> {
   try {
-    const res = await fetch(`/api/aside/${encodeURIComponent(category)}`, { cache: "no-store" });
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const url = origin ? `${origin}/api/aside/${encodeURIComponent(category)}` : `/api/aside/${encodeURIComponent(category)}`;
+    console.log("aside:fetch", url);
+    const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
     if (!res.ok) return { logs: [], names: {} };
     const json = await res.json();
     return { logs: (json?.logs ?? []) as UnitConversionLog[], names: (json?.names ?? {}) as Record<string, string> };
@@ -26,6 +29,7 @@ export default function CategoryAside({ title, category }: { title?: string; cat
     const run = async () => {
       setLoading(true);
       try {
+        console.log("aside:mount", category);
         const { logs, names } = await fetchAside(category);
         if (!cancelled) {
           setLogs(logs);
