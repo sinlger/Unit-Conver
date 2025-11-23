@@ -1,15 +1,17 @@
-import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const runtime = "nodejs";
 
-export async function GET(
-  _req: Request,
-  ctx: { params: Promise<{ category?: string }> }
-) {
+import type { NextRequest } from "next/server";
+
+export async function GET(req: NextRequest, ctx: { params: Promise<{ category: string }> }) {
+  const jsonHeaders = { "content-type": "application/json", "cache-control": "no-store" };
   const { category = "" } = await ctx.params;
   const decoded = decodeURIComponent(category);
+  const url = new URL(req.url);
+  const debug = url.searchParams.get("debug") === "1";
   try {
     const { data: symRows } = await supabaseServer
       .from("unit_dictionary")
@@ -60,17 +62,17 @@ export async function GET(
         if (k && nm && !(k in names)) names[k] = nm;
       });
     }
-
-    return NextResponse.json(
-      { logs, names },
-      {
-        status: 200,
-        headers: {
-          "Cache-Control": "public, s-maxage=600, stale-while-revalidate=86400, max-age=0",
-        },
-      }
-    );
+    const payload = debug
+      ? { logs, names, _debug: { symbolCount: symbols.length, logCount: logs.length, unitCount: units.length } }
+      : { logs, names };
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { ...jsonHeaders, "cache-control": "public, s-maxage=600, stale-while-revalidate=86400, max-age=0" },
+    });
   } catch (e) {
-    return NextResponse.json({ logs: [], names: {} }, { status: 200 });
+    return new Response(JSON.stringify({ logs: [], names: {}, error: "internal" }), {
+      status: 200,
+      headers: jsonHeaders,
+    });
   }
 }
