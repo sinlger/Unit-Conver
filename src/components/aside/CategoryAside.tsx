@@ -7,7 +7,7 @@ import type { UnitConversionLog } from "@/lib/types";
 
 async function fetchAside(category: string): Promise<{ logs: UnitConversionLog[]; names: Record<string, string> }> {
   try {
-    const res = await fetch(`/data/${encodeURIComponent(category)}/aside.json`, { cache: "force-cache" });
+    const res = await fetch(`/api/aside/${encodeURIComponent(category)}`, { cache: "no-store" });
     if (!res.ok) return { logs: [], names: {} };
     const json = await res.json();
     return { logs: (json?.logs ?? []) as UnitConversionLog[], names: (json?.names ?? {}) as Record<string, string> };

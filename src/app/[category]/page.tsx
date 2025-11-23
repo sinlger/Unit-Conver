@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabaseServer";
 import fs from "node:fs";
 import path from "node:path";
 import ConversionCard from "@/components/units/ConversionCard";
@@ -49,7 +49,7 @@ export const revalidate = 3600; // 1小时
 
 // 生成静态参数，用于SSG
 export async function generateStaticParams() {
-  const { data } = await supabase
+  const { data } = await supabaseServer
     .from("unit_dictionary")
     .select("category")
     .eq("is_active", true)
@@ -61,7 +61,7 @@ export async function generateStaticParams() {
   
   for (const category of categories) {
     try {
-      const { data: symRows } = await supabase
+      const { data: symRows } = await supabaseServer
         .from("unit_dictionary")
         .select("symbol")
         .eq("category", category)
@@ -72,13 +72,13 @@ export async function generateStaticParams() {
       let logs: any[] = [];
       if (symbols.length > 0) {
         const sel = "from_unit,input_value,to_unit,output_value,lang_code,conversion_count,first_seen_at,last_seen_at";
-        const { data: a } = await supabase
+        const { data: a } = await supabaseServer
           .from("unit_conversion_logs")
           .select(sel)
           .in("from_unit", symbols)
           .order("last_seen_at", { ascending: false })
           .limit(20);
-        const { data: b } = await supabase
+        const { data: b } = await supabaseServer
           .from("unit_conversion_logs")
           .select(sel)
           .in("to_unit", symbols)
@@ -101,7 +101,7 @@ export async function generateStaticParams() {
       ]));
       let names: Record<string, string> = {};
       if (units.length > 0) {
-        const { data: locs } = await supabase
+        const { data: locs } = await supabaseServer
           .from("unit_localizations")
           .select("unit_symbol,lang_code,name")
           .in("unit_symbol", units)
@@ -130,7 +130,7 @@ export async function generateStaticParams() {
 type Row = { symbol: string; category: string; is_active: boolean | null };
 
 async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseServer
     .from("unit_dictionary")
     .select("symbol,category,is_active")
     .eq("category", cat)
@@ -146,7 +146,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
   const symbols = Array.from(new Set(rows.map((r) => r.symbol))).sort();
   let names: Record<string, string> = {};
   if (symbols.length > 0) {
-    const { data } = await supabase
+    const { data } = await supabaseServer
       .from("unit_localizations")
       .select("unit_symbol,lang_code,name")
       .in("unit_symbol", symbols)
@@ -185,7 +185,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
     symbols.sort();
   }
   let categoryTitle = category;
-  const { data: catRows } = await supabase
+  const { data: catRows } = await supabaseServer
     .from("unit_dictionary")
     .select("category,category_zh")
     .eq("category", category)

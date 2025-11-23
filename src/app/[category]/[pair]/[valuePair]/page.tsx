@@ -1,4 +1,6 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabaseServer";
+import fs from "node:fs";
+import path from "node:path";
 import ConversionCard from "@/components/units/ConversionCard";
 import CategoryAside from "@/components/aside/CategoryAside";
 import GuessYouLike from "@/components/recommend/GuessYouLike";
@@ -65,7 +67,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
   let toName = to;
   
   // 直接从数据库获取单位名称
-  const { data: unitData } = await supabase
+  const { data: unitData } = await supabaseServer
     .from("unit_localizations")
     .select("unit_symbol,lang_code,name")
     .in("unit_symbol", [from, to])
@@ -100,7 +102,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
 
 // 生成静态参数，用于SSG
 export async function generateStaticParams() {
-  const { data } = await supabase
+  const { data } = await supabaseServer
     .from("unit_dictionary")
     .select("category, symbol")
     .eq("is_active", true)
@@ -144,7 +146,7 @@ export async function generateStaticParams() {
 type Row = { symbol: string; category: string; is_active: boolean | null };
 
 async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseServer
     .from("unit_dictionary")
     .select("symbol,category,is_active")
     .eq("category", cat)
@@ -161,7 +163,7 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
   let names: Record<string, string> = {};
   let sources: Record<string, string> = {};
   if (symbols.length > 0) {
-    const { data } = await supabase
+    const { data } = await supabaseServer
       .from("unit_localizations")
       .select("unit_symbol,lang_code,name,source_description")
       .in("unit_symbol", symbols)
@@ -171,6 +173,33 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
       if (r.unit_symbol && r.name && !(r.unit_symbol in names)) names[r.unit_symbol] = r.name;
       if (r.unit_symbol && r.source_description && !(r.unit_symbol in sources)) sources[r.unit_symbol] = r.source_description;
     });
+  }
+  if (symbols.length === 0) {
+    try {
+      const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
+      const rawGuess = fs.readFileSync(pGuess, "utf-8");
+      const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
+      if (Array.isArray(jsonGuess.symbols)) {
+        jsonGuess.symbols.forEach((s) => { if (s) symbols.push(s); });
+      }
+      if (jsonGuess.names && typeof jsonGuess.names === "object") {
+        names = { ...names, ...jsonGuess.names };
+      }
+    } catch {}
+    if (symbols.length === 0) {
+      try {
+        const pAside = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "aside.json");
+        const rawAside = fs.readFileSync(pAside, "utf-8");
+        const jsonAside = JSON.parse(rawAside) as { symbols?: string[]; names?: Record<string, string> };
+        if (Array.isArray(jsonAside.symbols)) {
+          jsonAside.symbols.forEach((s) => { if (s) symbols.push(s); });
+        }
+        if (jsonAside.names && typeof jsonAside.names === "object") {
+          names = { ...names, ...jsonAside.names };
+        }
+      } catch {}
+    }
+    symbols.sort();
   }
 
   let from = "";
