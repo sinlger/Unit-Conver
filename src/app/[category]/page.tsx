@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
 }
 // ISR配置 - 分类页面每小时重新验证
 export const revalidate = 3600; // 1小时
+export const dynamicParams = false;
 
 // 生成静态参数，用于SSG
 export async function generateStaticParams() {
@@ -54,9 +55,10 @@ export async function generateStaticParams() {
     .eq("is_active", true)
     .limit(100);
   
-  const supaCats = Array.from(new Set(data?.map((item) => item.category) || []));
+  const RESERVED_SEGMENTS = new Set(["api"]);
+  const supaCats = Array.from(new Set((data?.map((item) => item.category) || []).filter((c) => c && !RESERVED_SEGMENTS.has(c))));
   const articleCats = Object.keys(CATEGORY_ARTICLES);
-  const categories = Array.from(new Set([...supaCats, ...articleCats]));
+  const categories = Array.from(new Set([...supaCats, ...articleCats].filter((c) => c && !RESERVED_SEGMENTS.has(c))));
   
   for (const category of categories) {
     try {

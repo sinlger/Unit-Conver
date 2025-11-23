@@ -13,6 +13,7 @@ import { createMathFormulaSchema, createBreadcrumbSchema } from "@/components/st
 
 // ISR配置 - 具体值转换页面每24小时重新验证
 export const revalidate = 86400; // 24小时
+export const dynamicParams = false;
 
 export async function generateMetadata({ params }: { params: Promise<{ category?: string; pair?: string; valuePair?: string }> }): Promise<Metadata> {
   const { category = "", pair = "", valuePair = "" } = await params;
@@ -106,9 +107,11 @@ export async function generateStaticParams() {
   
   const params: { category: string; pair: string; valuePair: string }[] = [];
   const categorySymbols: Record<string, string[]> = {};
+  const RESERVED_SEGMENTS = new Set(["api"]);
   
   // 按分类组织符号
   data?.forEach((item) => {
+    if (!item.category || RESERVED_SEGMENTS.has(item.category)) return;
     if (!categorySymbols[item.category]) {
       categorySymbols[item.category] = [];
     }

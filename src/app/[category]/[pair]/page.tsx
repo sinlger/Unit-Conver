@@ -24,6 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
 }
 // ISR配置 - 转换对页面每6小时重新验证
 export const revalidate = 21600; // 6小时
+export const dynamicParams = false;
 
 // 生成静态参数，用于SSG
 export async function generateStaticParams() {
@@ -35,9 +36,11 @@ export async function generateStaticParams() {
   
   const params: { category: string; pair: string }[] = [];
   const categorySymbols: Record<string, string[]> = {};
+  const RESERVED_SEGMENTS = new Set(["api"]);
   
   // 按分类组织符号
   data?.forEach((item) => {
+    if (!item.category || RESERVED_SEGMENTS.has(item.category)) return;
     if (!categorySymbols[item.category]) {
       categorySymbols[item.category] = [];
     }
