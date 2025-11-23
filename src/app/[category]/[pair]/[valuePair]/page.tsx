@@ -62,22 +62,18 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
   
   const categoryName = categoryNames[category] || category;
   
-  // 获取单位名称（先从本地化数据中获取，如果没有则使用符号）
+  // 获取单位名称（优先从构建期静态 JSON 读取，减少 supabase 调用）
   let fromName = from;
   let toName = to;
-  
-  // 直接从数据库获取单位名称
-  const { data: unitData } = await supabaseServer
-    .from("unit_localizations")
-    .select("unit_symbol,lang_code,name")
-    .in("unit_symbol", [from, to])
-    .in("lang_code", ["zh", "zh-CN"])
-    .limit(10);
-  
-  (unitData as Array<{ unit_symbol: string; name: string }> | null)?.forEach((r) => {
-    if (r.unit_symbol === from) fromName = r.name;
-    if (r.unit_symbol === to) toName = r.name;
-  });
+  try {
+    const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
+    const rawGuess = fs.readFileSync(pGuess, "utf-8");
+    const jsonGuess = JSON.parse(rawGuess) as { names?: Record<string, string> };
+    if (jsonGuess.names) {
+      fromName = jsonGuess.names[from] ?? fromName;
+      toName = jsonGuess.names[to] ?? toName;
+    }
+  } catch {}
   
   return {
     title: `${value}${fromName}等于多少${toName}？ | ${categoryName}单位转换计算`,
@@ -158,22 +154,16 @@ async function fetchByCategory(cat: string): Promise<Row[]> {
 
 export default async function ConvertWithValuePage({ params }: { params: Promise<{ category?: string; pair?: string; valuePair?: string }> }) {
   const { category = "", pair = "", valuePair = "" } = await params;
-  const rows = await fetchByCategory(category);
-  const symbols = Array.from(new Set(rows.map((r) => r.symbol))).sort();
+  let symbols: string[] = [];
   let names: Record<string, string> = {};
   let sources: Record<string, string> = {};
-  if (symbols.length > 0) {
-    const { data } = await supabaseServer
-      .from("unit_localizations")
-      .select("unit_symbol,lang_code,name,source_description")
-      .in("unit_symbol", symbols)
-      .in("lang_code", ["zh", "zh-CN"])
-      .limit(2000);
-    (data as Array<{ unit_symbol: string; name: string; source_description?: string | null }> | null)?.forEach((r) => {
-      if (r.unit_symbol && r.name && !(r.unit_symbol in names)) names[r.unit_symbol] = r.name;
-      if (r.unit_symbol && r.source_description && !(r.unit_symbol in sources)) sources[r.unit_symbol] = r.source_description;
-    });
-  }
+  try {
+    const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
+    const rawGuess = fs.readFileSync(pGuess, "utf-8");
+    const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
+    if (Array.isArray(jsonGuess.symbols)) symbols = jsonGuess.symbols.slice().sort();
+    if (jsonGuess.names && typeof jsonGuess.names === "object") names = { ...jsonGuess.names };
+  } catch {}
   if (symbols.length === 0) {
     try {
       const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");

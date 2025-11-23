@@ -81,22 +81,16 @@ async function fetchByCategory(cat: string): Promise<Row[]> {
 
 export default async function ConvertCategoryPage({ params }: { params: Promise<{ category?: string; pair?: string }> }) {
   const { category = "", pair = "" } = await params;
-  const rows = await fetchByCategory(category);
-  const symbols = Array.from(new Set(rows.map((r) => r.symbol))).sort();
+  let symbols: string[] = [];
   let names: Record<string, string> = {};
   let sources: Record<string, string> = {};
-  if (symbols.length > 0) {
-    const { data } = await supabaseServer
-      .from("unit_localizations")
-      .select("unit_symbol,lang_code,name,source_description")
-      .in("unit_symbol", symbols)
-      .in("lang_code", ["zh", "zh-CN"])
-      .limit(2000);
-    (data as Array<{ unit_symbol: string; name: string; source_description?: string | null }> | null)?.forEach((r) => {
-      if (r.unit_symbol && r.name && !(r.unit_symbol in names)) names[r.unit_symbol] = r.name;
-      if (r.unit_symbol && r.source_description && !(r.unit_symbol in sources)) sources[r.unit_symbol] = r.source_description;
-    });
-  }
+  try {
+    const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
+    const rawGuess = fs.readFileSync(pGuess, "utf-8");
+    const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
+    if (Array.isArray(jsonGuess.symbols)) symbols = jsonGuess.symbols.slice().sort();
+    if (jsonGuess.names && typeof jsonGuess.names === "object") names = { ...jsonGuess.names };
+  } catch {}
   if (symbols.length === 0) {
     try {
       const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");

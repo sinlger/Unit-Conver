@@ -20,20 +20,16 @@ export async function GET(
     let logs: any[] = [];
     if (symbols.length > 0) {
       const sel = "from_unit,input_value,to_unit,output_value,lang_code,conversion_count,first_seen_at,last_seen_at";
-      const { data: a } = await supabaseServer
+      const list = symbols.map((s) => `${s}`);
+      const inExpr = list.join(",");
+      const { data: raw } = await supabaseServer
         .from("unit_conversion_logs")
         .select(sel)
-        .in("from_unit", symbols)
+        .or(`from_unit.in.(${inExpr}),to_unit.in.(${inExpr})`)
         .order("last_seen_at", { ascending: false })
-        .limit(20);
-      const { data: b } = await supabaseServer
-        .from("unit_conversion_logs")
-        .select(sel)
-        .in("to_unit", symbols)
-        .order("last_seen_at", { ascending: false })
-        .limit(20);
+        .limit(40);
       const map = new Map<string, any>();
-      [...((a ?? []) as any[]), ...((b ?? []) as any[])].forEach((r: any) => {
+      (raw ?? []).forEach((r: any) => {
         const k = `${r.from_unit}-${r.input_value}-${r.to_unit}-${r.output_value}-${r.lang_code}`;
         if (!map.has(k)) map.set(k, r);
       });
@@ -62,7 +58,15 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({ logs, names }, { status: 200 });
+    return NextResponse.json(
+      { logs, names },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, s-maxage=600, stale-while-revalidate=86400, max-age=0",
+        },
+      }
+    );
   } catch (e) {
     return NextResponse.json({ logs: [], names: {} }, { status: 200 });
   }
