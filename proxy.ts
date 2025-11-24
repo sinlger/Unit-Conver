@@ -1,13 +1,11 @@
 import createMiddleware from "next-intl/middleware";
 
-export const middleware = createMiddleware({
+export default createMiddleware({
   locales: ["zh", "en"],
   defaultLocale: "zh",
-  localePrefix: "always"
+  localePrefix: "never"
 });
 
-export default middleware;
-
 export const config = {
-  matcher: ["/", "/(.*)"]
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
 };
