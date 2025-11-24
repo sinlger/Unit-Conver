@@ -1,8 +1,10 @@
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import convert from "convert-units";
+import zh from "@/messages/zh.json";
+import en from "@/messages/en.json";
 
-export default function ConversionTable({ fromLabel, toLabel, fromUnit, toUnit }: { fromLabel: string; toLabel: string; fromUnit: string; toUnit: string }) {
+export default function ConversionTable({ fromLabel, toLabel, fromUnit, toUnit, locale }: { fromLabel: string; toLabel: string; fromUnit: string; toUnit: string; locale?: string }) {
   const samples = [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 100, 200, 300, 400, 500, 1000];
   const rows = samples.map((v) => {
     let out = "";
@@ -12,10 +14,12 @@ export default function ConversionTable({ fromLabel, toLabel, fromUnit, toUnit }
   const mid = Math.ceil(rows.length / 2);
   const rowsA = rows.slice(0, mid);
   const rowsB = rows.slice(mid);
+  const m: any = locale === "en" ? en : zh;
+  const title = (m.conversion?.tableTitleJoin || "{from} 换算 {to}").replace("{from}", String(fromLabel)).replace("{to}", String(toLabel));
   return (
       <Card>
         <CardHeader>
-          <CardTitle>{fromLabel}换算{toLabel}</CardTitle>
+          <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">

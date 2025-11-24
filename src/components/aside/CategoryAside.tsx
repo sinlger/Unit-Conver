@@ -5,6 +5,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemSeparator, ItemGroup } from "@/components/ui/item";
 import type { UnitConversionLog } from "@/lib/types";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 
 async function fetchAside(category: string, locale: string): Promise<{ logs: UnitConversionLog[]; names: Record<string, string> }> {
   try {
@@ -22,6 +23,7 @@ async function fetchAside(category: string, locale: string): Promise<{ logs: Uni
 
 export default function CategoryAside({ title, category }: { title?: string; category: string }) {
   const t = useTranslations();
+  const pathname = usePathname() ?? "/";
   const [logs, setLogs] = useState<UnitConversionLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [namesMap, setNamesMap] = useState<Record<string, string>>({});
@@ -32,7 +34,8 @@ export default function CategoryAside({ title, category }: { title?: string; cat
       setLoading(true);
       try {
         console.log("aside:mount", category);
-        const loc = typeof window !== "undefined" ? (window.location.pathname.split("/").filter(Boolean)[0] || "zh") : "zh";
+        const seg = pathname.split("/").filter(Boolean)[0] || "zh";
+        const loc = ["zh","en"].includes(seg) ? seg : "zh";
         const { logs, names } = await fetchAside(category, loc);
         if (!cancelled) {
           setLogs(logs);
@@ -63,7 +66,7 @@ export default function CategoryAside({ title, category }: { title?: string; cat
                 <Item variant="muted" >
                   <ItemContent>
                     <ItemTitle>
-                      <Link href={`/${(typeof window !== "undefined" ? (window.location.pathname.split("/").filter(Boolean)[0] || "zh") : "zh")}/${encodeURIComponent(category)}/${encodeURIComponent(r.from_unit)}-to-${encodeURIComponent(r.to_unit)}/${encodeURIComponent(String(r.input_value) + r.from_unit)}-to-${encodeURIComponent(r.to_unit)}`}>
+                      <Link href={`/${(["zh","en"].includes(pathname.split("/").filter(Boolean)[0] || "zh") ? (pathname.split("/").filter(Boolean)[0] || "zh") : "zh")}/${encodeURIComponent(category)}/${encodeURIComponent(r.from_unit)}-to-${encodeURIComponent(r.to_unit)}/${encodeURIComponent(String(r.input_value) + r.from_unit)}-to-${encodeURIComponent(r.to_unit)}`}>
                         {t("aside.question", { input: r.input_value, from: namesMap[r.from_unit] ?? r.from_unit, to: namesMap[r.to_unit] ?? r.to_unit })}
                       </Link>
                     </ItemTitle>

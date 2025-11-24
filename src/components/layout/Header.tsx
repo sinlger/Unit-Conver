@@ -54,7 +54,8 @@ export function Header() {
     router.push(nextPath);
   };
 
-  const currentLocale = (pathname ?? "/").split("/").filter(Boolean)[0] || "zh";
+  const seg = (pathname ?? "/").split("/").filter(Boolean)[0] || "zh";
+  const currentLocale = ["zh","en"].includes(seg) ? seg : "zh";
   const m = currentLocale === "en" ? (en as any) : (zh as any);
   return (
     <header className="sticky top-0 z-50 border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/70">

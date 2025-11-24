@@ -60,6 +60,11 @@
     "question": "{input}{from}等于多少{to}?"
   }
   ,
+  "recommend": {
+    "title": "你可能想要",
+    "empty": "该分类下单位不足以生成组合",
+    "link": "{from}换算{to}"
+  },
   "conversion": {
     "fromLabel": "从：",
     "toLabel": "到：",
@@ -84,6 +89,7 @@
     "processEq": "{value}{from} = {value} × {ratio}{to} = {result}{to}",
     "conclusionTitle": "结论：",
     "conclusionText": "因此，{value} {fromName} 换算成 {toName} 的答案是：",
-    "conclusionEq": "{value} {fromName} 等于 {result} {toName}。"
+    "conclusionEq": "{value} {fromName} 等于 {result} {toName}。",
+    "tableTitleJoin": "{from} 换算 {to}"
   }
 }

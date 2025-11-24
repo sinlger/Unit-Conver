@@ -10,10 +10,12 @@ import ConversionTable from "@/components/units/ConversionTable";
 import type { Metadata } from "next";
 import { StructuredData } from "@/components/structured-data/StructuredData";
 import { createMathFormulaSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
+import zh from "@/messages/zh.json";
+import en from "@/messages/en.json";
 
 // ISR配置 - 具体值转换页面每24小时重新验证
 export const revalidate = 86400; // 24小时
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: Promise<{ category?: string; pair?: string; valuePair?: string }> }): Promise<Metadata> {
   const { category = "", pair = "", valuePair = "" } = await params;
@@ -98,6 +100,8 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
 }
 
 // 生成静态参数，用于SSG
+const LOCALES = ["zh", "en"] as const;
+
 export async function generateStaticParams() {
   const { data } = await supabaseServer
     .from("unit_dictionary")
@@ -105,7 +109,7 @@ export async function generateStaticParams() {
     .eq("is_active", true)
     .limit(100);
   
-  const params: { category: string; pair: string; valuePair: string }[] = [];
+  const params: { locale: string; category: string; pair: string; valuePair: string }[] = [];
   const categorySymbols: Record<string, string[]> = {};
   const RESERVED_SEGMENTS = new Set(["api"]);
   
@@ -128,18 +132,21 @@ export async function generateStaticParams() {
     for (let i = 0; i < symbols.length && i < 3; i++) {
       for (let j = 0; j < symbols.length && j < 3 && j !== i; j++) {
         const pair = `${symbols[i]}-to-${symbols[j]}`;
-        commonValues.forEach((value) => {
-          params.push({
-            category: category,
-            pair: pair,
-            valuePair: `${value}${symbols[i]}-to-${symbols[j]}`,
+        for (const locale of LOCALES) {
+          commonValues.forEach((value) => {
+            params.push({
+              locale,
+              category,
+              pair,
+              valuePair: `${value}${symbols[i]}-to-${symbols[j]}`,
+            });
           });
-        });
+        }
       }
     }
   });
   
-  return params.slice(0, 50); // 限制数量
+  return params.slice(0, 200);
 }
 
 type Row = { symbol: string; category: string; is_active: boolean | null };
@@ -155,8 +162,8 @@ async function fetchByCategory(cat: string): Promise<Row[]> {
   return (data as Row[]) ?? [];
 }
 
-export default async function ConvertWithValuePage({ params }: { params: Promise<{ category?: string; pair?: string; valuePair?: string }> }) {
-  const { category = "", pair = "", valuePair = "" } = await params;
+export default async function ConvertWithValuePage({ params }: { params: Promise<{ locale?: string; category?: string; pair?: string; valuePair?: string }> }) {
+  const { locale = "zh", category = "", pair = "", valuePair = "" } = await params;
   let symbols: string[] = [];
   let names: Record<string, string> = {};
   let sources: Record<string, string> = {};
@@ -243,7 +250,8 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
   let fromName = names[from] ?? from;
   let toName = names[to] ?? to;
 
-  const pairTitle = from && to ? `${defaultValue}${fromName} 转 ${toName} 单位换算器` : "单位换算器";
+  const messages = locale === "en" ? (en as any) : (zh as any);
+  const pairTitle = `${defaultValue}${fromName} ${messages.common?.unitConverter}`;
 
   // 创建增强的数学公式结构化数据 - 包含具体数值和翻译信息
   const enhancedMathSolverSchema = {
@@ -316,6 +324,7 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
               toLabel={(names[to] ?? to) + ` [${to}]`}
               fromUnit={from}
               toUnit={to}
+              locale={locale}
             />
           </div>
           <div className="mt-8">
@@ -323,8 +332,8 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
           </div>
         </section>
         <aside className="md:col-span-1">
-          <CategoryAside title='最近单位换算' category={category} />
-          </aside>
+            <CategoryAside title={messages.common?.recentConversions} category={category} />
+        </aside>
         </div>
       </div>
     </>

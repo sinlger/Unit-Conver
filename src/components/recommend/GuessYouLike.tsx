@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ItemGroup, Item, ItemContent, ItemTitle, ItemSeparator } from "@/components/ui/item";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 function makePairs(list: string[], max = 24): Array<{ from: string; to: string }> {
   const pairs: Array<{ from: string; to: string }> = [];
@@ -15,18 +16,21 @@ function makePairs(list: string[], max = 24): Array<{ from: string; to: string }
   return pairs;
 }
 
-export default function GuessYouLike({ category, symbols, names }: { category: string; symbols: string[]; names?: Record<string, string> }) {
+export default function GuessYouLike({ category, symbols, names, locale: propLocale }: { category: string; symbols: string[]; names?: Record<string, string>; locale?: string }) {
+  const t = useTranslations();
   const pathname = usePathname() ?? "/";
-  const currentLocale = pathname.split("/").filter(Boolean)[0] || "zh";
+  const allowed = ["zh", "en"] as const;
+  const seg = pathname.split("/").filter(Boolean)[0] || "zh";
+  const currentLocale = (propLocale && allowed.includes(propLocale as any)) ? propLocale as any : (allowed.includes(seg as any) ? (seg as any) : "zh");
   const pairs = makePairs(symbols);
   return (
     <Card>
       <CardHeader>
-        <CardTitle>你可能想要</CardTitle>
+        <CardTitle>{t("recommend.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {pairs.length === 0 ? (
-          <div className="text-sm text-muted-foreground">该分类下单位不足以生成组合</div>
+          <div className="text-sm text-muted-foreground">{t("recommend.empty")}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {pairs.map((p) => (
@@ -34,7 +38,7 @@ export default function GuessYouLike({ category, symbols, names }: { category: s
                 <ItemContent>
                   <ItemTitle>
                     <Link href={`/${currentLocale}/${encodeURIComponent(category)}/${encodeURIComponent(p.from)}-to-${encodeURIComponent(p.to)}`}>
-                      {(names?.[p.from] ?? p.from)}换算{(names?.[p.to] ?? p.to)}
+                      {t("recommend.link", { from: (names?.[p.from] ?? p.from), to: (names?.[p.to] ?? p.to) })}
                     </Link>
                   </ItemTitle>
                 </ItemContent>

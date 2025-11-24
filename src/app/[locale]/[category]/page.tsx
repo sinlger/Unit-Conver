@@ -138,6 +138,21 @@ function readStatic(category: string): { symbols: string[]; names: Record<string
 export default async function ConvertCategoryPage({ params }: { params: Promise<{ locale?: string; category?: string }> }) {
   const { locale = "zh", category = "" } = await params;
   const { symbols, names } = readStatic(category);
+  let locNames = { ...names };
+  if (symbols.length > 0) {
+    const langs = locale.startsWith("en") ? ["en", "en-US", "en-GB"] : ["zh", "zh-CN"];
+    const { data: locs } = await supabaseServer
+      .from("unit_localizations")
+      .select("unit_symbol,lang_code,name")
+      .in("unit_symbol", symbols)
+      .in("lang_code", langs)
+      .limit(2000);
+    (locs ?? []).forEach((r: any) => {
+      const k = r.unit_symbol as string;
+      const nm = r.name as string;
+      if (k && nm) locNames[k] = nm;
+    });
+  }
   const messages = locale === "en" ? (en as any) : (zh as any);
   const categoryTitle = messages.categories?.[category] ?? category;
 
@@ -183,7 +198,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
               </div>
             ) : null}
             <div className="mt-8">
-              <GuessYouLike category={category} symbols={symbols} names={names} />
+              <GuessYouLike category={category} symbols={symbols} names={locNames} locale={locale} />
             </div>
           </section>
           <aside className="md:col-span-1">

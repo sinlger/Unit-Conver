@@ -13,19 +13,21 @@ import { useForm } from "react-hook-form";
 import { supabase } from "@/lib/supabase";
 import { ArrowLeftRight, Copy } from "lucide-react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import zh from "@/messages/zh.json";
+import en from "@/messages/en.json";
 
 type Row = { symbol: string; category: string };
 
 export default function ConversionCard({ title, defaultFrom, defaultTo, selectDisabled, defaultValue }: { title?: string; defaultFrom?: string; defaultTo?: string; selectDisabled?: boolean; defaultValue?: string }) {
-  const t = useTranslations();
   const pathname = usePathname() ?? "/";
   const [locale, category] = useMemo(() => {
     const parts = pathname.split("/").filter(Boolean);
-    const loc = parts[0] || "zh";
+    const seg = parts[0] || "zh";
+    const loc = ["zh","en"].includes(seg) ? seg : "zh";
     const cat = decodeURIComponent(parts[1] ?? "");
     return [loc, cat];
   }, [pathname]);
+  const m: any = locale === "en" ? en : zh;
 
   const [symbols, setSymbols] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -98,7 +100,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
           if (!cancelled) setNamesMap({});
         }
       } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? t("conversion.queryFailedPrefix"));
+        if (!cancelled) setError(e?.message ?? m.conversion?.queryFailedPrefix);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -145,7 +147,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
         setResult(String(out));
         setConvertError(null);
       } catch {
-        setConvertError(t("conversion.queryFailedPrefix") + t("conversion.processEq"));
+        setConvertError(m.conversion?.queryFailedPrefix);
       }
     }
   }, [symbols, defaultValue, defaultFrom, defaultTo]);
@@ -156,7 +158,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
     const { value, from, to } = form.getValues();
     const v = Number(value);
     if (!from || !to || Number.isNaN(v)) {
-      setConvertError(t("conversion.queryFailedPrefix"));
+      setConvertError(m.conversion?.queryFailedPrefix);
       return;
     }
     try {
@@ -206,16 +208,16 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
     if (!val) return;
     try {
       await navigator.clipboard.writeText(String(val));
-      toast.success(t("conversion.copyResultAria"));
+      toast.success(m.conversion?.copyResultAria);
     } catch {
-      toast.error(t("conversion.queryFailedPrefix"));
+      toast.error(m.conversion?.queryFailedPrefix);
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title ?? `${(t as any)(`categories.${category}`) || category} ${t("categoryPage.titleSuffix")}`}</CardTitle>
+        <CardTitle>{title ?? `${(m.categories?.[category] ?? category)} ${m.categoryPage?.titleSuffix}`}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
         <Form {...form}>
@@ -225,11 +227,11 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                 name="from"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("conversion.fromLabel")}</FormLabel>
+                    <FormLabel>{m.conversion?.fromLabel}</FormLabel>
                     <FormControl>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger className="h-12 px-4 text-base" disabled={loading || symbols.length === 0 || !!selectDisabled}>
-                          <SelectValue placeholder={t("conversion.selectSource")} />
+                          <SelectValue placeholder={m.conversion?.selectSource} />
                         </SelectTrigger>
                         <SelectContent>
                           {symbols.map((a) => (
@@ -254,7 +256,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     form.setValue("to", f ?? "");
                   }}
                   disabled={!form.getValues("from") || !form.getValues("to")}
-                  aria-label={t("conversion.swapAria")}
+                  aria-label={m.conversion?.swapAria}
                   type="button"
                   className="h-12 w-12"
                 >
@@ -267,11 +269,11 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                 name="to"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("conversion.toLabel")}</FormLabel>
+                    <FormLabel>{m.conversion?.toLabel}</FormLabel>
                     <FormControl>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger className="h-12 px-4 text-base" disabled={loading || symbols.length === 0 || !!selectDisabled}>
-                          <SelectValue placeholder={t("conversion.selectTarget")} />
+                          <SelectValue placeholder={m.conversion?.selectTarget} />
                         </SelectTrigger>
                         <SelectContent>
                           {symbols.map((a) => (
@@ -292,31 +294,31 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("conversion.quantity")}</FormLabel>
+                    <FormLabel>{m.conversion?.quantity}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder={t("conversion.inputPlaceholder")} className="h-12 text-base" {...field} />
+                      <Input type="number" placeholder={m.conversion?.inputPlaceholder} className="h-12 text-base" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormItem className="flex items-end">
-                <Button size="lg" className="h-12 w-full md:w-44 text-base" disabled={loading || symbols.length < 1} type="button" onClick={onConvert}>{t("conversion.convert")}</Button>
+                <Button size="lg" className="h-12 w-full md:w-44 text-base" disabled={loading || symbols.length < 1} type="button" onClick={onConvert}>{m.conversion?.convert}</Button>
               </FormItem>
             </CardFooter>
 
-            {error && <CardFooter className="p-0 text-sm text-destructive">{t("conversion.queryFailedPrefix")}{error}</CardFooter>}
+            {error && <CardFooter className="p-0 text-sm text-destructive">{m.conversion?.queryFailedPrefix}{error}</CardFooter>}
             {convertError && <CardFooter className="p-0 text-sm text-destructive">{convertError}</CardFooter>}
 
             <CardFooter className="grid gap-2 p-0">
-              <Label>{t("conversion.resultLabel")}</Label>
+              <Label>{m.conversion?.resultLabel}</Label>
               <InputGroup className="h-12 text-base">
                 <InputGroupInput readOnly value={(() => {
                   const { value, from, to } = form.getValues();
                   return result !== "" ? `${value} ${from} = ${result} ${to}` : "";
                 })()} />
                 <InputGroupAddon align="inline-end">
-                  <InputGroupButton variant="ghost"  size="icon-sm" aria-label={t("conversion.copyResultAria")} onClick={copyResult}>
+                  <InputGroupButton variant="ghost"  size="icon-sm" aria-label={m.conversion?.copyResultAria} onClick={copyResult}>
                     <Copy className="h-4 w-4" />
                   </InputGroupButton>
                 </InputGroupAddon>
@@ -333,9 +335,9 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     <div className="text-lg">{value} {fromName} ({from}) =</div>
                     <div className="mt-2 text-4xl font-bold tracking-tight">{result} {toName}</div>
                     <div className="mt-3 text-sm text-muted-foreground">
-                      {t("conversion.equalsInline", { value, from: fromName, result, to: toName })}
+                      {(m.conversion?.equalsInline).replace("{value}", String(value)).replace("{from}", String(fromName)).replace("{result}", String(result)).replace("{to}", String(toName))}
                       <span className="mx-2">|</span>
-                      <a href={`/${encodeURIComponent(locale)}/${encodeURIComponent(category)}/${encodeURIComponent(to)}-to-${encodeURIComponent(from)}`}>{t("conversion.linkReverse", { to: toName, from: fromName })}</a>
+                      <a href={`/${encodeURIComponent(locale)}/${encodeURIComponent(category)}/${encodeURIComponent(to)}-to-${encodeURIComponent(from)}`}>{(m.conversion?.linkReverse).replace("{to}", String(toName)).replace("{from}", String(fromName))}</a>
                     </div>
                   </div>
                 );
@@ -358,34 +360,34 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     if (abbrs.includes(from) && abbrs.includes(to)) { measure = m; break; }
                   }
                 } catch {}
-                const measureName = (t as any)(`categories.${measure}`) || measure;
+                const measureName = m.categories?.[measure] ?? measure;
                 return (
                   <div className="grid gap-4">
                     <div>
-                      {t("conversion.questionTitle")}
+                      {m.conversion?.questionTitle}
                       <div className="mt-2">
-                        {t("conversion.questionText", { value, fromName, from, toName, to })}
+                        {(m.conversion?.questionText).replace("{value}", String(value)).replace("{fromName}", String(fromName)).replace("{from}", String(from)).replace("{toName}", String(toName)).replace("{to}", String(to))}
                       </div>
                     </div>
                     <div>
-                      {t("conversion.backgroundTitle")}
+                      {m.conversion?.backgroundTitle}
                       <div className="mt-2">
-                        {t("conversion.backgroundText", { fromName, from, toName, to, measureName })}
-                        <div className="mt-1">{t("conversion.backgroundEq", { from, ratio, to })}</div>
+                        {(m.conversion?.backgroundText).replace("{fromName}", String(fromName)).replace("{from}", String(from)).replace("{toName}", String(toName)).replace("{to}", String(to)).replace("{measureName}", String(measureName))}
+                        <div className="mt-1">{(m.conversion?.backgroundEq).replace("{from}", String(from)).replace("{ratio}", String(ratio)).replace("{to}", String(to))}</div>
                       </div>
                     </div>
                     <div>
-                      {t("conversion.processTitle")}
+                      {m.conversion?.processTitle}
                       <div className="mt-2">
-                        {t("conversion.processText", { value, from, to })}
-                        <div className="mt-1">{t("conversion.processEq", { value, from, ratio, result, to })}</div>
+                        {(m.conversion?.processText).replace("{value}", String(value)).replace("{from}", String(from)).replace("{to}", String(to))}
+                        <div className="mt-1">{(m.conversion?.processEq).replace("{value}", String(value)).replace("{from}", String(from)).replace("{ratio}", String(ratio)).replace("{result}", String(result)).replace("{to}", String(to))}</div>
                       </div>
                     </div>
                     <div>
-                      {t("conversion.conclusionTitle")}
+                      {m.conversion?.conclusionTitle}
                       <div className="mt-2">
-                        {t("conversion.conclusionText", { value, fromName, toName })}
-                        <div className="mt-1">{t("conversion.conclusionEq", { value, fromName, result, toName })}</div>
+                        {(m.conversion?.conclusionText).replace("{value}", String(value)).replace("{fromName}", String(fromName)).replace("{toName}", String(toName))}
+                        <div className="mt-1">{(m.conversion?.conclusionEq).replace("{value}", String(value)).replace("{fromName}", String(fromName)).replace("{result}", String(result)).replace("{toName}", String(toName))}</div>
                       </div>
                     </div>
                   </div>

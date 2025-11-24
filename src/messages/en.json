@@ -57,9 +57,14 @@
   "aside": {
     "loading": "Loading...",
     "empty": "No recent conversions",
-    "question": "How much is {input} {from} in {to}?"
+    "question": "How much is {input}{from} in {to}?"
   }
   ,
+  "recommend": {
+    "title": "You may want",
+    "empty": "Not enough units in this category to form pairs",
+    "link": "Convert {from} to {to}"
+  },
   "conversion": {
     "fromLabel": "From:",
     "toLabel": "To:",
@@ -84,6 +89,7 @@
     "processEq": "{value}{from} = {value} × {ratio}{to} = {result}{to}",
     "conclusionTitle": "Conclusion:",
     "conclusionText": "Therefore, {value} {fromName} equals:",
-    "conclusionEq": "{value} {fromName} equals {result} {toName}."
+    "conclusionEq": "{value} {fromName} equals {result} {toName}.",
+    "tableTitleJoin": "Convert {from} to {to}"
   }
 }

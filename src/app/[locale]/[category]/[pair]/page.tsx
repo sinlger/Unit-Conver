@@ -10,6 +10,8 @@ import ConversionTable from "@/components/units/ConversionTable";
 import type { Metadata } from "next";
 import { StructuredData } from "@/components/structured-data/StructuredData";
 import { createMathFormulaSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
+import zh from "@/messages/zh.json";
+import en from "@/messages/en.json";
 
 
 export async function generateMetadata({ params }: { params: Promise<{ category?: string; pair?: string }> }): Promise<Metadata> {
@@ -24,9 +26,11 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
 }
 // ISR配置 - 转换对页面每6小时重新验证
 export const revalidate = 21600; // 6小时
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 // 生成静态参数，用于SSG
+const LOCALES = ["zh", "en"] as const;
+
 export async function generateStaticParams() {
   const { data } = await supabaseServer
     .from("unit_dictionary")
@@ -34,7 +38,7 @@ export async function generateStaticParams() {
     .eq("is_active", true)
     .limit(200);
   
-  const params: { category: string; pair: string }[] = [];
+  const params: { locale: string; category: string; pair: string }[] = [];
   const categorySymbols: Record<string, string[]> = {};
   const RESERVED_SEGMENTS = new Set(["api"]);
   
@@ -54,19 +58,15 @@ export async function generateStaticParams() {
     // 生成一些常见的转换对
     for (let i = 0; i < symbols.length; i++) {
       for (let j = i + 1; j < symbols.length && j < i + 5; j++) {
-        params.push({
-          category: category,
-          pair: `${symbols[i]}-to-${symbols[j]}`,
-        });
-        params.push({
-          category: category,
-          pair: `${symbols[j]}-to-${symbols[i]}`,
-        });
+        for (const locale of LOCALES) {
+          params.push({ locale, category, pair: `${symbols[i]}-to-${symbols[j]}` });
+          params.push({ locale, category, pair: `${symbols[j]}-to-${symbols[i]}` });
+        }
       }
     }
   });
   
-  return params.slice(0, 100); // 限制数量以避免构建时间过长
+  return params.slice(0, 300);
 }
 
 type Row = { symbol: string; category: string; is_active: boolean | null };
@@ -82,8 +82,8 @@ async function fetchByCategory(cat: string): Promise<Row[]> {
   return (data as Row[]) ?? [];
 }
 
-export default async function ConvertCategoryPage({ params }: { params: Promise<{ category?: string; pair?: string }> }) {
-  const { category = "", pair = "" } = await params;
+export default async function ConvertCategoryPage({ params }: { params: Promise<{ locale?: string; category?: string; pair?: string }> }) {
+  const { locale = "zh", category = "", pair = "" } = await params;
   let symbols: string[] = [];
   let names: Record<string, string> = {};
   let sources: Record<string, string> = {};
@@ -128,7 +128,9 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
     from = parts[0] ?? "";
     to = parts[1] ?? "";
   }
-  const pairTitle = from && to ? `${names[from] ?? from} 转 ${names[to] ?? to} 单位换算器` : "单位换算器";
+  const fromName = names[from] ?? from;
+  const messages = locale === "en" ? (en as any) : (zh as any);
+  const pairTitle = `${fromName} ${messages.common?.unitConverter}`;
   console.log(pairTitle)
   console.log(from)
   console.log(to)
@@ -207,6 +209,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
                 toLabel={(names[to] ?? to) + ` [${to}]`}
                 fromUnit={from}
                 toUnit={to}
+                locale={locale}
               />
             </div>
             <div className="mt-8">
@@ -214,7 +217,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
             </div>
           </section>
           <aside className="md:col-span-1">
-            <CategoryAside title='最近单位换算' category={category} />
+            <CategoryAside title={messages.common?.recentConversions} category={category} />
           </aside>
         </div>
       </div>

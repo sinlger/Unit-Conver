@@ -10,7 +10,8 @@ export default function Breadcrumb() {
   const t = useTranslations();
   const pathname = usePathname() ?? "/";
   const allParts = useMemo(() => pathname.split("/").filter(Boolean), [pathname]);
-  const locale = allParts[0] ?? "zh";
+  const allowed = ["zh", "en"];
+  const locale = allowed.includes(allParts[0] ?? "") ? (allParts[0] as "zh" | "en") : "zh";
   const isRoot = useMemo(() => allParts.length === 0 || (allParts.length === 1 && allParts[0] === locale), [allParts, locale]);
   const parts = useMemo(() => {
     const arr = allParts.slice();
