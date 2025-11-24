@@ -13,7 +13,7 @@ import en from "@/messages/en.json";
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const [cats, setCats] = useState<Array<{ slug: string; label: string }>>([]);
+  const [cats, setCats] = useState<Array<{ slug: string; zhLabel: string; enLabel: string }>>([]);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -26,13 +26,13 @@ export function Header() {
           .order("category", { ascending: true })
           .limit(500);
         if (error || !data) return;
-        const map = new Map<string, string>();
+        const map = new Map<string, { zhLabel: string; enLabel: string }>();
         (data as Array<{ category: string; category_zh: string | null }>).forEach((r) => {
           const prev = map.get(r.category);
-          const curr = r.category_zh ?? r.category;
-          if (!prev || (r.category_zh && prev === r.category)) map.set(r.category, curr);
+          const next = { zhLabel: r.category_zh ?? r.category, enLabel: r.category };
+          if (!prev || (r.category_zh && prev.zhLabel === r.category)) map.set(r.category, next);
         });
-        const list = Array.from(map.entries()).map(([slug, label]) => ({ slug, label }));
+        const list = Array.from(map.entries()).map(([slug, labels]) => ({ slug, zhLabel: labels.zhLabel, enLabel: labels.enLabel }));
         if (!cancelled) setCats(list);
       } catch {}
     };
@@ -69,10 +69,10 @@ export function Header() {
                 <NavigationMenuItem>
                   <NavigationMenuTrigger onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).click(); }}>{m.header?.menuTitle}</NavigationMenuTrigger>
                   <NavigationMenuContent className="p-3" >
-                    <div className="grid sm:grid-cols-3 md:grid-cols-3 gap-2 w-[400px]">
+                    <div className="grid sm:grid-cols-2 md:grid-cols-2 gap-2 w-[400px]">
                       {cats.map((c) => (
                         <NavigationMenuLink key={c.slug} className={navigationMenuTriggerStyle()} asChild>
-                          <Link href={`/${currentLocale}/${encodeURIComponent(c.slug)}`}>{`${c.label}${m.header?.categorySuffix}`}</Link>
+                          <Link href={`/${currentLocale}/${encodeURIComponent(c.slug)}`}>{`${(currentLocale === "zh" ? c.zhLabel : c.enLabel)}${m.header?.categorySuffix}`}</Link>
                         </NavigationMenuLink>
                       ))}
                       {cats.length === 0 && (

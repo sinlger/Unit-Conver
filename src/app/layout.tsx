@@ -70,7 +70,7 @@ export default function RootLayout({
       <head>
         <StructuredData data={jsonLd} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-dvh flex flex-col`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-dvh flex flex-col bg-background text-foreground`}>
         <ThemeProvider>
           <Header />
           <main className="flex-1">

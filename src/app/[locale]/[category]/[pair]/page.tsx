@@ -8,8 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ItemGroup, Item, ItemContent, ItemTitle, ItemDescription, ItemSeparator } from "@/components/ui/item";
 import ConversionTable from "@/components/units/ConversionTable";
 import type { Metadata } from "next";
-import { StructuredData } from "@/components/structured-data/StructuredData";
-import { createMathFormulaSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
+import { StructuredData, createMathFormulaSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
 import zh from "@/messages/zh.json";
 import en from "@/messages/en.json";
 
@@ -17,7 +16,7 @@ import en from "@/messages/en.json";
 export async function generateMetadata({ params }: { params: Promise<{ category?: string; pair?: string }> }): Promise<Metadata> {
   const { category = "", pair = "" } = await params;
   const [from, to] = pair.split("-to-").map(decodeURIComponent);
-  
+
   return {
     title: `${from}转${to} | ${category}单位转换`,
     description: `在线${from}到${to}转换工具，快速准确地将${from}转换为${to}，支持反向转换。`,
@@ -37,11 +36,11 @@ export async function generateStaticParams() {
     .select("category, symbol")
     .eq("is_active", true)
     .limit(200);
-  
+
   const params: { locale: string; category: string; pair: string }[] = [];
   const categorySymbols: Record<string, string[]> = {};
   const RESERVED_SEGMENTS = new Set(["api"]);
-  
+
   // 按分类组织符号
   data?.forEach((item) => {
     if (!item.category || RESERVED_SEGMENTS.has(item.category)) return;
@@ -52,7 +51,7 @@ export async function generateStaticParams() {
       categorySymbols[item.category].push(item.symbol);
     }
   });
-  
+
   // 生成转换对
   Object.entries(categorySymbols).forEach(([category, symbols]) => {
     // 生成一些常见的转换对
@@ -65,21 +64,8 @@ export async function generateStaticParams() {
       }
     }
   });
-  
+
   return params.slice(0, 300);
-}
-
-type Row = { symbol: string; category: string; is_active: boolean | null };
-
-async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabaseServer
-    .from("unit_dictionary")
-    .select("symbol,category,is_active")
-    .eq("category", cat)
-    .order("symbol", { ascending: true })
-    .limit(500);
-  if (error) return [];
-  return (data as Row[]) ?? [];
 }
 
 export default async function ConvertCategoryPage({ params }: { params: Promise<{ locale?: string; category?: string; pair?: string }> }) {
@@ -93,33 +79,46 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
     const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
     if (Array.isArray(jsonGuess.symbols)) symbols = jsonGuess.symbols.slice().sort();
     if (jsonGuess.names && typeof jsonGuess.names === "object") names = { ...jsonGuess.names };
-  } catch {}
+  } catch { }
   if (symbols.length === 0) {
     try {
-      const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
-      const rawGuess = fs.readFileSync(pGuess, "utf-8");
-      const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
-      if (Array.isArray(jsonGuess.symbols)) {
-        jsonGuess.symbols.forEach((s) => { if (s) symbols.push(s); });
+      const pAside = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "aside.json");
+      const rawAside = fs.readFileSync(pAside, "utf-8");
+      const jsonAside = JSON.parse(rawAside) as { symbols?: string[]; names?: Record<string, string> };
+      if (Array.isArray(jsonAside.symbols)) {
+        jsonAside.symbols.forEach((s) => { if (s) symbols.push(s); });
       }
-      if (jsonGuess.names && typeof jsonGuess.names === "object") {
-        names = { ...names, ...jsonGuess.names };
+      if (jsonAside.names && typeof jsonAside.names === "object") {
+        names = { ...names, ...jsonAside.names };
       }
-    } catch {}
-    if (symbols.length === 0) {
-      try {
-        const pAside = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "aside.json");
-        const rawAside = fs.readFileSync(pAside, "utf-8");
-        const jsonAside = JSON.parse(rawAside) as { symbols?: string[]; names?: Record<string, string> };
-        if (Array.isArray(jsonAside.symbols)) {
-          jsonAside.symbols.forEach((s) => { if (s) symbols.push(s); });
-        }
-        if (jsonAside.names && typeof jsonAside.names === "object") {
-          names = { ...names, ...jsonAside.names };
-        }
-      } catch {}
-    }
+    } catch { }
     symbols.sort();
+  }
+  if (symbols.length > 0) {
+    const langs = locale.startsWith("en") ? ["en", "en-US", "en-GB"] : ["zh", "zh-CN"];
+    try {
+      const { data: locs } = await supabaseServer
+        .from("unit_localizations")
+        .select("unit_symbol,lang_code,name,source_description")
+        .in("unit_symbol", symbols)
+        .in("lang_code", langs)
+        .limit(2000);
+      let locNames = { ...names };
+      let locSources: Record<string, string> = {};
+
+      (locs ?? []).forEach((r: any) => {
+        const k = r.unit_symbol as string;
+        const nm = r.name as string;
+        const sd = r.source_description as string | undefined;
+
+        if (k && nm) locNames[k] = nm;
+        if (k && sd) locSources[k] = sd;
+
+      });
+      names = locNames;
+      sources = locSources;
+
+    } catch { }
   }
   let from = "";
   let to = "";
@@ -131,33 +130,17 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
   const fromName = names[from] ?? from;
   const messages = locale === "en" ? (en as any) : (zh as any);
   const pairTitle = `${fromName} ${messages.common?.unitConverter}`;
-  console.log(pairTitle)
-  console.log(from)
-  console.log(to)
 
-  // 获取分类中文名称
-  let categoryNames: Record<string, string> = {
-    length: "长度",
-    area: "面积", 
-    volume: "体积",
-    mass: "质量",
-    temperature: "温度",
-    pressure: "压力",
-    power: "功率",
-    speed: "速度",
-    frequency: "频率",
-    current: "电流",
-    voltage: "电压",
-    resistance: "电阻",
-    energy: "能量",
-    illuminance: "照度",
-    angle: "角度",
-    time: "时间",
-    digital: "数字存储",
-    volumeFlowRate: "流量"
-  };
-  
-  const categoryName = categoryNames[category] || category;
+  let categoryName = category;
+  try {
+    const { data } = await supabaseServer
+      .from("unit_dictionary")
+      .select("category,category_zh")
+      .eq("category", category)
+      .limit(1);
+    const row = data?.[0] as { category?: string; category_zh?: string } | undefined;
+    if (locale === "zh" && row?.category_zh) categoryName = row.category_zh;
+  } catch { }
 
   // 创建数学公式结构化数据
   const mathSolverSchema = createMathFormulaSchema(from, to);
@@ -182,21 +165,21 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
             <div className="mt-8">
               <Card>
                 <CardHeader>
-                  <CardTitle>说明</CardTitle>
+                  <CardTitle>{messages.conversion?.backgroundTitle}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ItemGroup>
                     <Item variant="muted">
                       <ItemContent>
                         <ItemTitle>{(names[from] ?? from) + ` [${from}]`}</ItemTitle>
-                        <ItemDescription>{sources[from] ?? "暂无来源"}</ItemDescription>
+                        <ItemDescription>{sources[from] ?? messages.home?.noData}</ItemDescription>
                       </ItemContent>
                     </Item>
                     <ItemSeparator />
                     <Item variant="muted">
                       <ItemContent>
                         <ItemTitle>{(names[to] ?? to) + ` [${to}]`}</ItemTitle>
-                        <ItemDescription>{sources[to] ?? "暂无来源"}</ItemDescription>
+                        <ItemDescription>{sources[from] ?? messages.home?.noData}</ItemDescription>
                       </ItemContent>
                     </Item>
                   </ItemGroup>
@@ -213,7 +196,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
               />
             </div>
             <div className="mt-8">
-              <GuessYouLike category={category} symbols={symbols} names={names} />
+              <GuessYouLike locale={locale} category={category} symbols={symbols} names={names} />
             </div>
           </section>
           <aside className="md:col-span-1">

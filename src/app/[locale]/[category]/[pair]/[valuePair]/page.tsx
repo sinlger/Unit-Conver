@@ -8,8 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ItemGroup, Item, ItemContent, ItemTitle, ItemDescription, ItemSeparator } from "@/components/ui/item";
 import ConversionTable from "@/components/units/ConversionTable";
 import type { Metadata } from "next";
-import { StructuredData } from "@/components/structured-data/StructuredData";
-import { createMathFormulaSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
+import { StructuredData, createMathFormulaSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
 import zh from "@/messages/zh.json";
 import en from "@/messages/en.json";
 
@@ -41,29 +40,16 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
     to = parts[1] ?? to;
   }
   
-  // 获取分类中文名称
-  const categoryNames: Record<string, string> = {
-    length: "长度",
-    area: "面积", 
-    volume: "体积",
-    mass: "质量",
-    temperature: "温度",
-    pressure: "压力",
-    power: "功率",
-    speed: "速度",
-    frequency: "频率",
-    current: "电流",
-    voltage: "电压",
-    resistance: "电阻",
-    energy: "能量",
-    illuminance: "照度",
-    angle: "角度",
-    time: "时间",
-    digital: "数字存储",
-    volumeFlowRate: "流量"
-  };
-  
-  const categoryName = categoryNames[category] || category;
+  let categoryName = category;
+  try {
+    const { data } = await supabaseServer
+      .from("unit_dictionary")
+      .select("category,category_zh")
+      .eq("category", category)
+      .limit(1);
+    const row = data?.[0] as { category?: string; category_zh?: string } | undefined;
+    if (row?.category_zh) categoryName = row.category_zh;
+  } catch {}
   
   // 获取单位名称（优先从构建期静态 JSON 读取，减少 supabase 调用）
   let fromName = from;
@@ -149,18 +135,7 @@ export async function generateStaticParams() {
   return params.slice(0, 200);
 }
 
-type Row = { symbol: string; category: string; is_active: boolean | null };
-
-async function fetchByCategory(cat: string): Promise<Row[]> {
-  const { data, error } = await supabaseServer
-    .from("unit_dictionary")
-    .select("symbol,category,is_active")
-    .eq("category", cat)
-    .order("symbol", { ascending: true })
-    .limit(500);
-  if (error) return [];
-  return (data as Row[]) ?? [];
-}
+ 
 
 export default async function ConvertWithValuePage({ params }: { params: Promise<{ locale?: string; category?: string; pair?: string; valuePair?: string }> }) {
   const { locale = "zh", category = "", pair = "", valuePair = "" } = await params;
@@ -176,30 +151,39 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
   } catch {}
   if (symbols.length === 0) {
     try {
-      const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
-      const rawGuess = fs.readFileSync(pGuess, "utf-8");
-      const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
-      if (Array.isArray(jsonGuess.symbols)) {
-        jsonGuess.symbols.forEach((s) => { if (s) symbols.push(s); });
+      const pAside = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "aside.json");
+      const rawAside = fs.readFileSync(pAside, "utf-8");
+      const jsonAside = JSON.parse(rawAside) as { symbols?: string[]; names?: Record<string, string> };
+      if (Array.isArray(jsonAside.symbols)) {
+        jsonAside.symbols.forEach((s) => { if (s) symbols.push(s); });
       }
-      if (jsonGuess.names && typeof jsonGuess.names === "object") {
-        names = { ...names, ...jsonGuess.names };
+      if (jsonAside.names && typeof jsonAside.names === "object") {
+        names = { ...names, ...jsonAside.names };
       }
     } catch {}
-    if (symbols.length === 0) {
-      try {
-        const pAside = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "aside.json");
-        const rawAside = fs.readFileSync(pAside, "utf-8");
-        const jsonAside = JSON.parse(rawAside) as { symbols?: string[]; names?: Record<string, string> };
-        if (Array.isArray(jsonAside.symbols)) {
-          jsonAside.symbols.forEach((s) => { if (s) symbols.push(s); });
-        }
-        if (jsonAside.names && typeof jsonAside.names === "object") {
-          names = { ...names, ...jsonAside.names };
-        }
-      } catch {}
-    }
     symbols.sort();
+  }
+  if (symbols.length > 0) {
+    const langs = locale.startsWith("en") ? ["en", "en-US", "en-GB"] : ["zh", "zh-CN"];
+    try {
+      const { data: locs } = await supabaseServer
+        .from("unit_localizations")
+        .select("unit_symbol,lang_code,name,source_description")
+        .in("unit_symbol", symbols)
+        .in("lang_code", langs)
+        .limit(2000);
+      let locNames = { ...names };
+      let locSources: Record<string, string> = {};
+      (locs ?? []).forEach((r: any) => {
+        const k = r.unit_symbol as string;
+        const nm = r.name as string;
+        const sd = r.source_description as string | undefined;
+        if (k && nm) locNames[k] = nm;
+        if (k && sd) locSources[k] = sd;
+      });
+      names = locNames;
+      sources = locSources;
+    } catch {}
   }
 
   let from = "";
@@ -222,29 +206,16 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
     to = parts[1] ?? to;
   }
 
-  // 获取分类中文名称
-  const categoryNames: Record<string, string> = {
-    length: "长度",
-    area: "面积", 
-    volume: "体积",
-    mass: "质量",
-    temperature: "温度",
-    pressure: "压力",
-    power: "功率",
-    speed: "速度",
-    frequency: "频率",
-    current: "电流",
-    voltage: "电压",
-    resistance: "电阻",
-    energy: "能量",
-    illuminance: "照度",
-    angle: "角度",
-    time: "时间",
-    digital: "数字存储",
-    volumeFlowRate: "流量"
-  };
-  
-  const categoryName = categoryNames[category] || category;
+  let categoryName = category;
+  try {
+    const { data } = await supabaseServer
+      .from("unit_dictionary")
+      .select("category,category_zh")
+      .eq("category", category)
+      .limit(1);
+    const row = data?.[0] as { category?: string; category_zh?: string } | undefined;
+    if (locale === "zh" && row?.category_zh) categoryName = row.category_zh;
+  } catch {}
   
   // 获取单位名称（先从本地化数据中获取，如果没有则使用符号）
   let fromName = names[from] ?? from;
@@ -297,21 +268,21 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
           <div className="mt-8">
             <Card>
               <CardHeader>
-                <CardTitle>说明</CardTitle>
+                <CardTitle>{messages.conversion?.backgroundTitle}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ItemGroup>
                   <Item variant="muted">
                     <ItemContent>
                       <ItemTitle>{(names[from] ?? from) + ` [${from}]`}</ItemTitle>
-                      <ItemDescription>{sources[from] ?? "暂无来源"}</ItemDescription>
+                      <ItemDescription>{sources[from] ?? messages.home?.noData}</ItemDescription>
                     </ItemContent>
                   </Item>
                   <ItemSeparator />
                   <Item variant="muted">
                     <ItemContent>
                       <ItemTitle>{(names[to] ?? to) + ` [${to}]`}</ItemTitle>
-                      <ItemDescription>{sources[to] ?? "暂无来源"}</ItemDescription>
+                      <ItemDescription>{sources[to] ?? messages.home?.noData}</ItemDescription>
                     </ItemContent>
                   </Item>
                 </ItemGroup>

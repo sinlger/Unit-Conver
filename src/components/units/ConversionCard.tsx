@@ -28,6 +28,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
     return [loc, cat];
   }, [pathname]);
   const m: any = locale === "en" ? en : zh;
+  const fmt = (t: string | undefined, v: Record<string, any>) => (t ?? "").replace(/\{(\w+)\}/g, (_: string, k: string) => String(v[k] ?? `{${k}}`));
 
   const [symbols, setSymbols] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -335,9 +336,9 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     <div className="text-lg">{value} {fromName} ({from}) =</div>
                     <div className="mt-2 text-4xl font-bold tracking-tight">{result} {toName}</div>
                     <div className="mt-3 text-sm text-muted-foreground">
-                      {(m.conversion?.equalsInline).replace("{value}", String(value)).replace("{from}", String(fromName)).replace("{result}", String(result)).replace("{to}", String(toName))}
+                      {fmt(m.conversion?.equalsInline, { value, from: fromName, result, to: toName })}
                       <span className="mx-2">|</span>
-                      <a href={`/${encodeURIComponent(locale)}/${encodeURIComponent(category)}/${encodeURIComponent(to)}-to-${encodeURIComponent(from)}`}>{(m.conversion?.linkReverse).replace("{to}", String(toName)).replace("{from}", String(fromName))}</a>
+                      <a href={`/${encodeURIComponent(locale)}/${encodeURIComponent(category)}/${encodeURIComponent(to)}-to-${encodeURIComponent(from)}`}>{fmt(m.conversion?.linkReverse, { to: toName, from: fromName })}</a>
                     </div>
                   </div>
                 );
@@ -366,28 +367,28 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     <div>
                       {m.conversion?.questionTitle}
                       <div className="mt-2">
-                        {(m.conversion?.questionText).replace("{value}", String(value)).replace("{fromName}", String(fromName)).replace("{from}", String(from)).replace("{toName}", String(toName)).replace("{to}", String(to))}
+                        {fmt(m.conversion?.questionText, { value, fromName, from, toName, to })}
                       </div>
                     </div>
                     <div>
                       {m.conversion?.backgroundTitle}
                       <div className="mt-2">
-                        {(m.conversion?.backgroundText).replace("{fromName}", String(fromName)).replace("{from}", String(from)).replace("{toName}", String(toName)).replace("{to}", String(to)).replace("{measureName}", String(measureName))}
-                        <div className="mt-1">{(m.conversion?.backgroundEq).replace("{from}", String(from)).replace("{ratio}", String(ratio)).replace("{to}", String(to))}</div>
+                        {fmt(m.conversion?.backgroundText, { fromName, from, toName, to, measureName })}
+                        <div className="mt-1">{fmt(m.conversion?.backgroundEq, { from, ratio, to })}</div>
                       </div>
                     </div>
                     <div>
                       {m.conversion?.processTitle}
                       <div className="mt-2">
-                        {(m.conversion?.processText).replace("{value}", String(value)).replace("{from}", String(from)).replace("{to}", String(to))}
-                        <div className="mt-1">{(m.conversion?.processEq).replace("{value}", String(value)).replace("{from}", String(from)).replace("{ratio}", String(ratio)).replace("{result}", String(result)).replace("{to}", String(to))}</div>
+                        {fmt(m.conversion?.processText, { value, from, to })}
+                        <div className="mt-1">{fmt(m.conversion?.processEq, { value, from, ratio, result, to })}</div>
                       </div>
                     </div>
                     <div>
                       {m.conversion?.conclusionTitle}
                       <div className="mt-2">
-                        {(m.conversion?.conclusionText).replace("{value}", String(value)).replace("{fromName}", String(fromName)).replace("{toName}", String(toName))}
-                        <div className="mt-1">{(m.conversion?.conclusionEq).replace("{value}", String(value)).replace("{fromName}", String(fromName)).replace("{result}", String(result)).replace("{toName}", String(toName))}</div>
+                        {fmt(m.conversion?.conclusionText, { value, fromName, toName })}
+                        <div className="mt-1">{fmt(m.conversion?.conclusionEq, { value, fromName, result, toName })}</div>
                       </div>
                     </div>
                   </div>

@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { Metadata } from "next";
 import zh from "@/messages/zh.json";
 import en from "@/messages/en.json";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 
 export const revalidate = 86400;
 
@@ -51,12 +52,14 @@ export default async function Home({ params }: { params: Promise<{ locale?: stri
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16, marginTop: 16 }}>
           {categories.map((c) => (
             <Link key={c} href={`/${encodeURIComponent(locale)}/${encodeURIComponent(c)}`} style={{ display: "block", border: "1px solid #e5e7eb", borderRadius: 8, padding: 16, textDecoration: "none" }}>
-              <div style={{ fontWeight: 600 }}>{categoryTitle.get(c) ?? c}</div>
+              <div style={{ fontWeight: 600 }}>{locale === "zh" ? categoryTitle.get(c) ?? c : c}</div>
               <div style={{ marginTop: 6, color: "#666", fontSize: 12 }}>
-                {(() => {
-                  const symbols = (catSymbols.get(c) ?? []).slice(0, 6);
-                  return symbols.length ? symbols.join("、") : (m.common?.unitConversion ?? "")
-                })()}
+                <KbdGroup>
+                  {(catSymbols.get(c) ?? []).slice(0, 5).map((s) => (
+                    <Kbd key={s}>{s}</Kbd>
+                  ))}
+                </KbdGroup>
+
               </div>
             </Link>
           ))}

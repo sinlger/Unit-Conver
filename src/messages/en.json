@@ -57,7 +57,7 @@
   "aside": {
     "loading": "Loading...",
     "empty": "No recent conversions",
-    "question": "How much is {input}{from} in {to}?"
+    "question": "How much is {input} {from} in {to}?"
   }
   ,
   "recommend": {
