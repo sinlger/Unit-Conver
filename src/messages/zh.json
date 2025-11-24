@@ -1,0 +1,89 @@
+{
+  "common": {
+    "home": "首页",
+    "unitConversion": "单位换算",
+    "unitConverter": "单位换算器",
+    "data": "数据",
+    "to": "转",
+    "recentConversions": "最近单位换算"
+  },
+  "categories": {
+    "length": "长度",
+    "area": "面积",
+    "volume": "体积",
+    "mass": "质量",
+    "temperature": "温度",
+    "pressure": "压力",
+    "power": "功率",
+    "speed": "速度",
+    "frequency": "频率",
+    "current": "电流",
+    "voltage": "电压",
+    "resistance": "电阻",
+    "energy": "能量",
+    "illuminance": "照度",
+    "angle": "角度",
+    "time": "时间",
+    "digital": "数字存储",
+    "volumeFlowRate": "流量"
+  },
+  "breadcrumb": {
+    "home": "首页",
+    "data": "数据",
+    "unitConversionSuffix": "单位换算",
+    "convertJoin": "转",
+    "loading": "加载中..."
+  },
+  "categoryPage": {
+    "titleSuffix": "单位换算器"
+  },
+  "header": {
+    "menuTitle": "单位转换",
+    "categorySuffix": "转换",
+    "empty": "暂无分类",
+    "switchLanguage": "切换语言",
+    "toggleTheme": "切换主题"
+  },
+  "footer": {
+    "description": "单位字典与转换示例，基于 Supabase 与 Next.js SSG/ISR。"
+  }
+  ,
+  "home": {
+    "categoryEntry": "分类入口",
+    "intro": "基于 Next.js SSG/ISR 与 Supabase 的单位字典与转换演示。",
+    "noData": "暂无数据或读取失败"
+  }
+  ,
+  "aside": {
+    "loading": "加载中...",
+    "empty": "暂无最近转换",
+    "question": "{input}{from}等于多少{to}?"
+  }
+  ,
+  "conversion": {
+    "fromLabel": "从：",
+    "toLabel": "到：",
+    "selectSource": "选择来源单位",
+    "selectTarget": "选择目标单位",
+    "quantity": "数量：",
+    "inputPlaceholder": "请输入数值",
+    "convert": "转换",
+    "swapAria": "交换",
+    "resultLabel": "结果：",
+    "copyResultAria": "复制结果",
+    "equalsInline": "即：{value}{from}等于{result}{to}",
+    "linkReverse": "{to}与{from}换算",
+    "queryFailedPrefix": "查询失败：",
+    "questionTitle": "问题：",
+    "questionText": "{value} {fromName}（单位符号是：{from}）等于多少{toName}（单位符号是：{to}）？",
+    "backgroundTitle": "背景说明：",
+    "backgroundText": "{fromName}（单位符号是：{from}）和{toName}（单位符号是：{to}）是{measureName}单位，它们之间的换算关系是：",
+    "backgroundEq": "1 {from} = {ratio} {to}。",
+    "processTitle": "计算过程：",
+    "processText": "要将 {value} {from} 转换为 {to}，我们可以通过以下公式计算：",
+    "processEq": "{value}{from} = {value} × {ratio}{to} = {result}{to}",
+    "conclusionTitle": "结论：",
+    "conclusionText": "因此，{value} {fromName} 换算成 {toName} 的答案是：",
+    "conclusionEq": "{value} {fromName} 等于 {result} {toName}。"
+  }
+}

@@ -1,6 +1,8 @@
+"use client";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ItemGroup, Item, ItemContent, ItemTitle, ItemSeparator } from "@/components/ui/item";
+import { usePathname } from "next/navigation";
 
 function makePairs(list: string[], max = 24): Array<{ from: string; to: string }> {
   const pairs: Array<{ from: string; to: string }> = [];
@@ -14,6 +16,8 @@ function makePairs(list: string[], max = 24): Array<{ from: string; to: string }
 }
 
 export default function GuessYouLike({ category, symbols, names }: { category: string; symbols: string[]; names?: Record<string, string> }) {
+  const pathname = usePathname() ?? "/";
+  const currentLocale = pathname.split("/").filter(Boolean)[0] || "zh";
   const pairs = makePairs(symbols);
   return (
     <Card>
@@ -29,7 +33,7 @@ export default function GuessYouLike({ category, symbols, names }: { category: s
               <Item key={`${p.from}-${p.to}`} variant="muted">
                 <ItemContent>
                   <ItemTitle>
-                    <Link href={`/${encodeURIComponent(category)}/${encodeURIComponent(p.from)}-to-${encodeURIComponent(p.to)}`}>
+                    <Link href={`/${currentLocale}/${encodeURIComponent(category)}/${encodeURIComponent(p.from)}-to-${encodeURIComponent(p.to)}`}>
                       {(names?.[p.from] ?? p.from)}换算{(names?.[p.to] ?? p.to)}
                     </Link>
                   </ItemTitle>

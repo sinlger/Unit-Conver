@@ -4,11 +4,12 @@ import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemSeparator, ItemGroup } from "@/components/ui/item";
 import type { UnitConversionLog } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
-async function fetchAside(category: string): Promise<{ logs: UnitConversionLog[]; names: Record<string, string> }> {
+async function fetchAside(category: string, locale: string): Promise<{ logs: UnitConversionLog[]; names: Record<string, string> }> {
   try {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = origin ? `${origin}/api/aside/${encodeURIComponent(category)}` : `/api/aside/${encodeURIComponent(category)}`;
+    const url = origin ? `${origin}/api/aside/${encodeURIComponent(category)}?locale=${encodeURIComponent(locale)}` : `/api/aside/${encodeURIComponent(category)}?locale=${encodeURIComponent(locale)}`;
     console.log("aside:fetch", url);
     const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
     if (!res.ok) return { logs: [], names: {} };
@@ -20,6 +21,7 @@ async function fetchAside(category: string): Promise<{ logs: UnitConversionLog[]
 }
 
 export default function CategoryAside({ title, category }: { title?: string; category: string }) {
+  const t = useTranslations();
   const [logs, setLogs] = useState<UnitConversionLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [namesMap, setNamesMap] = useState<Record<string, string>>({});
@@ -30,7 +32,8 @@ export default function CategoryAside({ title, category }: { title?: string; cat
       setLoading(true);
       try {
         console.log("aside:mount", category);
-        const { logs, names } = await fetchAside(category);
+        const loc = typeof window !== "undefined" ? (window.location.pathname.split("/").filter(Boolean)[0] || "zh") : "zh";
+        const { logs, names } = await fetchAside(category, loc);
         if (!cancelled) {
           setLogs(logs);
           setNamesMap(names);
@@ -50,9 +53,9 @@ export default function CategoryAside({ title, category }: { title?: string; cat
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="text-sm text-muted-foreground">加载中...</div>
+          <div className="text-sm text-muted-foreground">{t("aside.loading")}</div>
         ) : logs.length === 0 ? (
-          <div className="text-sm text-muted-foreground">暂无最近转换</div>
+          <div className="text-sm text-muted-foreground">{t("aside.empty")}</div>
         ) : (
           <ItemGroup>
             {logs.map((r, i) => (
@@ -60,8 +63,8 @@ export default function CategoryAside({ title, category }: { title?: string; cat
                 <Item variant="muted" >
                   <ItemContent>
                     <ItemTitle>
-                      <Link href={`/${encodeURIComponent(category)}/${encodeURIComponent(r.from_unit)}-to-${encodeURIComponent(r.to_unit)}/${encodeURIComponent(String(r.input_value) + r.from_unit)}-to-${encodeURIComponent(r.to_unit)}`}>
-                        {r.input_value}{namesMap[r.from_unit] ?? r.from_unit}等于多少{namesMap[r.to_unit] ?? r.to_unit}？
+                      <Link href={`/${(typeof window !== "undefined" ? (window.location.pathname.split("/").filter(Boolean)[0] || "zh") : "zh")}/${encodeURIComponent(category)}/${encodeURIComponent(r.from_unit)}-to-${encodeURIComponent(r.to_unit)}/${encodeURIComponent(String(r.input_value) + r.from_unit)}-to-${encodeURIComponent(r.to_unit)}`}>
+                        {t("aside.question", { input: r.input_value, from: namesMap[r.from_unit] ?? r.from_unit, to: namesMap[r.to_unit] ?? r.to_unit })}
                       </Link>
                     </ItemTitle>
                   </ItemContent>

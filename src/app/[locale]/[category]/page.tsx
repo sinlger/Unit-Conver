@@ -8,38 +8,22 @@ import { CATEGORY_ARTICLES } from "@/content/categoryMap";
 import type { Metadata } from "next";
 import { StructuredData } from "@/components/structured-data/StructuredData";
 import { createConversionToolSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
+import zh from "@/messages/zh.json";
+import en from "@/messages/en.json";
 
-const CATEGORY_NAME_MAP: Record<string, string> = {
-  length: "长度",
-  area: "面积",
-  volume: "体积",
-  mass: "质量",
-  temperature: "温度",
-  pressure: "压力",
-  power: "功率",
-  speed: "速度",
-  frequency: "频率",
-  current: "电流",
-  voltage: "电压",
-  resistance: "电阻",
-  energy: "能量",
-  illuminance: "照度",
-  angle: "角度",
-  time: "时间",
-  digital: "数字存储",
-  volumeFlowRate: "流量",
-};
+const LOCALES = ["zh", "en"];
 
-export async function generateMetadata({ params }: { params: Promise<{ category?: string }> }): Promise<Metadata> {
-  const { category = "" } = await params;
-  const categoryName = CATEGORY_NAME_MAP[category] || category;
+export async function generateMetadata({ params }: { params: Promise<{ locale?: string; category?: string }> }): Promise<Metadata> {
+  const { locale = "zh", category = "" } = await params;
+  const messages = locale === "en" ? (en as any) : (zh as any);
+  const categoryName = messages.categories?.[category] ?? category;
   return {
-    title: `${categoryName}单位转换 | 单位转换器`,
-    description: `专业的${categoryName}单位转换工具，支持各种${categoryName}单位之间的相互转换，如${categoryName}到${categoryName}、${categoryName}到${categoryName}等。`,
-    keywords: [`${categoryName}转换`, `${categoryName}单位`, "单位转换"],
+    title: `${categoryName}${messages.common?.unitConversion} | ${messages.common?.unitConverter}`,
+    description: `专业的${categoryName}${messages.common?.unitConversion}工具，支持各种${categoryName}单位之间的相互转换。`,
+    keywords: [`${categoryName}转换`, `${categoryName}单位`, messages.common?.unitConversion],
     openGraph: {
-      title: `${categoryName}单位转换`,
-      description: `专业的${categoryName}单位转换工具`,
+      title: `${categoryName}${messages.common?.unitConversion}`,
+      description: `专业的${categoryName}${messages.common?.unitConversion}工具`,
     },
   };
 }
@@ -54,12 +38,12 @@ export async function generateStaticParams() {
     .select("category")
     .eq("is_active", true)
     .limit(100);
-  
+
   const RESERVED_SEGMENTS = new Set(["api"]);
   const supaCats = Array.from(new Set((data?.map((item) => item.category) || []).filter((c) => c && !RESERVED_SEGMENTS.has(c))));
   const articleCats = Object.keys(CATEGORY_ARTICLES);
   const categories = Array.from(new Set([...supaCats, ...articleCats].filter((c) => c && !RESERVED_SEGMENTS.has(c))));
-  
+
   for (const category of categories) {
     try {
       const { data: symRows } = await supabaseServer
@@ -98,11 +82,12 @@ export async function generateStaticParams() {
       ]));
       let names: Record<string, string> = {};
       if (units.length > 0) {
+        const locLangs = ["zh", "zh-CN"];
         const { data: locs } = await supabaseServer
           .from("unit_localizations")
           .select("unit_symbol,lang_code,name")
           .in("unit_symbol", units)
-          .in("lang_code", ["zh", "zh-CN"])
+          .in("lang_code", locLangs)
           .limit(2000);
         (locs ?? []).forEach((r: any) => {
           const k = r.unit_symbol as string;
@@ -112,16 +97,20 @@ export async function generateStaticParams() {
       }
 
       const outDir = path.join(process.cwd(), "public", "data", encodeURIComponent(category));
-      try { fs.mkdirSync(outDir, { recursive: true }); } catch {}
+      try { fs.mkdirSync(outDir, { recursive: true }); } catch { }
       const payload = { symbols, logs, names };
       fs.writeFileSync(path.join(outDir, "aside.json"), JSON.stringify(payload));
       fs.writeFileSync(path.join(outDir, "guess.json"), JSON.stringify(payload));
-    } catch {}
+    } catch { }
   }
-  
-  return categories.map((category) => ({
-    category: category,
-  }));
+
+  const out: Array<{ locale: string; category: string }> = [];
+  for (const locale of LOCALES) {
+    for (const category of categories) {
+      out.push({ locale, category });
+    }
+  }
+  return out;
 }
 
 function readStatic(category: string): { symbols: string[]; names: Record<string, string> } {
@@ -133,7 +122,7 @@ function readStatic(category: string): { symbols: string[]; names: Record<string
     const jsonGuess = JSON.parse(rawGuess) as { symbols?: string[]; names?: Record<string, string> };
     if (Array.isArray(jsonGuess.symbols)) symbols = jsonGuess.symbols.slice().sort();
     if (jsonGuess.names && typeof jsonGuess.names === "object") names = { ...jsonGuess.names };
-  } catch {}
+  } catch { }
   if (symbols.length === 0) {
     try {
       const pAside = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "aside.json");
@@ -141,33 +130,39 @@ function readStatic(category: string): { symbols: string[]; names: Record<string
       const jsonAside = JSON.parse(rawAside) as { symbols?: string[]; names?: Record<string, string> };
       if (Array.isArray(jsonAside.symbols)) symbols = jsonAside.symbols.slice().sort();
       if (jsonAside.names && typeof jsonAside.names === "object") names = { ...names, ...jsonAside.names };
-    } catch {}
+    } catch { }
   }
   return { symbols, names };
 }
 
-export default async function ConvertCategoryPage({ params }: { params: Promise<{ category?: string }> }) {
-  const { category = "" } = await params;
+export default async function ConvertCategoryPage({ params }: { params: Promise<{ locale?: string; category?: string }> }) {
+  const { locale = "zh", category = "" } = await params;
   const { symbols, names } = readStatic(category);
-  const categoryTitle = CATEGORY_NAME_MAP[category] || category;
+  const messages = locale === "en" ? (en as any) : (zh as any);
+  const categoryTitle = messages.categories?.[category] ?? category;
 
   let ArticleComp: any = null;
-  const loader = CATEGORY_ARTICLES[category];
-  if (typeof loader === "function") {
-    const mod = await loader();
-    ArticleComp = mod?.default ?? null;
+  try {
+    const modLoc = await import(`@/content/${locale}/${category}.mdx`);
+    ArticleComp = modLoc?.default ?? null;
+  } catch {
+    const loader = CATEGORY_ARTICLES[category];
+    if (typeof loader === "function") {
+      const mod = await loader();
+      ArticleComp = mod?.default ?? null;
+    }
   }
 
   // 生成分类页面的结构化数据
-  const categoryName = CATEGORY_NAME_MAP[category] || category;
-  
+  const categoryName = categoryTitle;
+
   // 创建转换工具结构化数据
   const webAppSchema = createConversionToolSchema(category, categoryName);
 
   // 创建面包屑结构化数据
   const breadcrumbSchema = createBreadcrumbSchema([
-    { name: "首页", url: "https://unit-converter.com" },
-    { name: `${categoryName}单位转换`, url: `https://unit-converter.com/${category}` }
+    { name: messages.common?.home, url: `https://unit-converter.com/${locale}` },
+    { name: `${categoryName}${messages.common?.unitConversion}`, url: `https://unit-converter.com/${locale}/${category}` }
   ]);
 
   return (
@@ -178,7 +173,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
         <div className="grid gap-4 md:grid-cols-4">
           <section className="md:col-span-3">
             <div className=" text-left">
-              <ConversionCard title={`${categoryTitle} 单位换算器`} />
+              <ConversionCard title={`${categoryTitle} ${messages.common?.unitConverter}`} />
             </div>
             {ArticleComp ? (
               <div className="mt-8">
@@ -192,7 +187,7 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
             </div>
           </section>
           <aside className="md:col-span-1">
-            <CategoryAside title='最近单位换算' category={category} />
+            <CategoryAside title={messages.common?.recentConversions} category={category} />
           </aside>
         </div>
       </div>

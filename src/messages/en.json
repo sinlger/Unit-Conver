@@ -1,0 +1,89 @@
+{
+  "common": {
+    "home": "Home",
+    "unitConversion": "Unit Conversion",
+    "unitConverter": "Unit Converter",
+    "data": "Data",
+    "to": "to",
+    "recentConversions": "Recent Conversions"
+  },
+  "categories": {
+    "length": "Length",
+    "area": "Area",
+    "volume": "Volume",
+    "mass": "Mass",
+    "temperature": "Temperature",
+    "pressure": "Pressure",
+    "power": "Power",
+    "speed": "Speed",
+    "frequency": "Frequency",
+    "current": "Current",
+    "voltage": "Voltage",
+    "resistance": "Resistance",
+    "energy": "Energy",
+    "illuminance": "Illuminance",
+    "angle": "Angle",
+    "time": "Time",
+    "digital": "Digital Storage",
+    "volumeFlowRate": "Flow Rate"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "data": "Data",
+    "unitConversionSuffix": "Unit Conversion",
+    "convertJoin": "to",
+    "loading": "Loading..."
+  },
+  "categoryPage": {
+    "titleSuffix": "Unit Converter"
+  },
+  "header": {
+    "menuTitle": "Unit Conversion",
+    "categorySuffix": "Conversion",
+    "empty": "No categories",
+    "switchLanguage": "Switch language",
+    "toggleTheme": "Toggle theme"
+  },
+  "footer": {
+    "description": "Unit dictionary & conversion demo, powered by Supabase and Next.js SSG/ISR."
+  }
+  ,
+  "home": {
+    "categoryEntry": "Categories",
+    "intro": "Unit dictionary & conversion demo powered by Next.js SSG/ISR and Supabase.",
+    "noData": "No data or failed to load"
+  }
+  ,
+  "aside": {
+    "loading": "Loading...",
+    "empty": "No recent conversions",
+    "question": "How much is {input} {from} in {to}?"
+  }
+  ,
+  "conversion": {
+    "fromLabel": "From:",
+    "toLabel": "To:",
+    "selectSource": "Select source unit",
+    "selectTarget": "Select target unit",
+    "quantity": "Quantity:",
+    "inputPlaceholder": "Enter a value",
+    "convert": "Convert",
+    "swapAria": "Swap",
+    "resultLabel": "Result:",
+    "copyResultAria": "Copy result",
+    "equalsInline": "That is: {value}{from} equals {result}{to}",
+    "linkReverse": "{to} and {from} conversion",
+    "queryFailedPrefix": "Query failed:",
+    "questionTitle": "Question:",
+    "questionText": "How much is {value} {fromName} (symbol: {from}) in {toName} (symbol: {to})?",
+    "backgroundTitle": "Background:",
+    "backgroundText": "{fromName} (symbol: {from}) and {toName} (symbol: {to}) are {measureName} units. Their relation is:",
+    "backgroundEq": "1 {from} = {ratio} {to}.",
+    "processTitle": "Process:",
+    "processText": "To convert {value} {from} to {to}, use:",
+    "processEq": "{value}{from} = {value} × {ratio}{to} = {result}{to}",
+    "conclusionTitle": "Conclusion:",
+    "conclusionText": "Therefore, {value} {fromName} equals:",
+    "conclusionEq": "{value} {fromName} equals {result} {toName}."
+  }
+}

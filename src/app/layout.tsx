@@ -4,7 +4,6 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Footer } from "@/components/layout/Footer";
-import BreadcrumbClient from "@/components/navigation/BreadcrumbClient";
 import { Toaster } from "@/components/ui/sonner";
 import { StructuredData } from "@/components/structured-data/StructuredData";
 import { 
@@ -75,9 +74,6 @@ export default function RootLayout({
         <ThemeProvider>
           <Header />
           <main className="flex-1">
-            <div className="mx-auto max-w-5xl px-6 pt-4">
-              <BreadcrumbClient />
-            </div>
             {children}
           </main>
           <Footer />

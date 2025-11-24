@@ -1,15 +1,18 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, NavigationMenuContent, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import zh from "@/messages/zh.json";
+import en from "@/messages/en.json";
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [cats, setCats] = useState<Array<{ slug: string; label: string }>>([]);
   const { theme, setTheme } = useTheme();
 
@@ -42,37 +45,56 @@ export function Header() {
     setTheme(next);
   };
 
+  const switchLocale = () => {
+    const parts = (pathname ?? "/").split("/").filter(Boolean);
+    const current = parts[0] || "zh";
+    const target = current === "zh" ? "en" : "zh";
+    const rest = parts.slice(1).join("/");
+    const nextPath = rest ? `/${target}/${rest}` : `/${target}`;
+    router.push(nextPath);
+  };
+
+  const currentLocale = (pathname ?? "/").split("/").filter(Boolean)[0] || "zh";
+  const m = currentLocale === "en" ? (en as any) : (zh as any);
   return (
     <header className="sticky top-0 z-50 border-b bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto max-w-5xl px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="font-semibold text-lg hover:opacity-90">Unit Conver</Link>
+          <Link href={`/${currentLocale}`} className="font-semibold text-lg hover:opacity-90">Unit Conver</Link>
 
           <div className="flex items-center gap-2">
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).click(); }}>单位转换</NavigationMenuTrigger>
+                  <NavigationMenuTrigger onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).click(); }}>{m.header?.menuTitle}</NavigationMenuTrigger>
                   <NavigationMenuContent className="p-3" >
                     <div className="grid sm:grid-cols-3 md:grid-cols-3 gap-2 w-[400px]">
                       {cats.map((c) => (
                         <NavigationMenuLink key={c.slug} className={navigationMenuTriggerStyle()} asChild>
-                          <Link href={`/${encodeURIComponent(c.slug)}`}>{c.label}转换</Link>
+                          <Link href={`/${currentLocale}/${encodeURIComponent(c.slug)}`}>{`${c.label}${m.header?.categorySuffix}`}</Link>
                         </NavigationMenuLink>
                       ))}
                       {cats.length === 0 && (
-                        <div className="text-sm text-muted-foreground px-2 py-1">暂无分类</div>
+                        <div className="text-sm text-muted-foreground px-2 py-1">{m.header?.empty}</div>
                       )}
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={switchLocale}
+              aria-label={m.header?.switchLanguage}
+            >
+              {(pathname ?? "/").split("/").filter(Boolean)[0] === "zh" ? "EN" : "中文"}
+            </Button>
              <Button
               variant="outline"
               size="icon"
               onClick={toggleDark}
-              aria-label="切换主题"
+              aria-label={m.header?.toggleTheme}
             >
               <Sun className="h-4 w-4 dark:hidden" />
               <Moon className="h-4 w-4 hidden dark:block" />

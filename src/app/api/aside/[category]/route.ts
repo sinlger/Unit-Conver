@@ -12,6 +12,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ category: s
   const decoded = decodeURIComponent(category);
   const url = new URL(req.url);
   const debug = url.searchParams.get("debug") === "1";
+  const locale = url.searchParams.get("locale") || "zh";
   try {
     const { data: symRows } = await supabaseServer
       .from("unit_dictionary")
@@ -50,11 +51,12 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ category: s
     ]));
     let names: Record<string, string> = {};
     if (units.length > 0) {
+      const langs = locale.startsWith("en") ? ["en", "en-US", "en-GB"] : ["zh", "zh-CN"];
       const { data: locs } = await supabaseServer
         .from("unit_localizations")
         .select("unit_symbol,lang_code,name")
         .in("unit_symbol", units)
-        .in("lang_code", ["zh", "zh-CN"])
+        .in("lang_code", langs)
         .limit(2000);
       (locs ?? []).forEach((r: any) => {
         const k = r.unit_symbol as string;

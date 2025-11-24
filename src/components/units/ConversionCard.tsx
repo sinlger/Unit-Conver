@@ -13,14 +13,18 @@ import { useForm } from "react-hook-form";
 import { supabase } from "@/lib/supabase";
 import { ArrowLeftRight, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 type Row = { symbol: string; category: string };
 
 export default function ConversionCard({ title, defaultFrom, defaultTo, selectDisabled, defaultValue }: { title?: string; defaultFrom?: string; defaultTo?: string; selectDisabled?: boolean; defaultValue?: string }) {
+  const t = useTranslations();
   const pathname = usePathname() ?? "/";
-  const category = useMemo(() => {
+  const [locale, category] = useMemo(() => {
     const parts = pathname.split("/").filter(Boolean);
-    return decodeURIComponent(parts[0] ?? "");
+    const loc = parts[0] || "zh";
+    const cat = decodeURIComponent(parts[1] ?? "");
+    return [loc, cat];
   }, [pathname]);
 
   const [symbols, setSymbols] = useState<string[]>([]);
@@ -81,7 +85,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
             .from("unit_localizations")
             .select("unit_symbol,lang_code,name")
             .in("unit_symbol", namesSource)
-            .in("lang_code", ["zh", "zh-CN"])
+          .in("lang_code", locale === "en" ? ["en", "en-US", "en-GB"] : ["zh", "zh-CN"]) 
             .limit(2000);
           const m: Record<string, string> = {};
           (locs ?? []).forEach((r: any) => {
@@ -94,7 +98,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
           if (!cancelled) setNamesMap({});
         }
       } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? "查询失败");
+        if (!cancelled) setError(e?.message ?? t("conversion.queryFailedPrefix"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -141,7 +145,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
         setResult(String(out));
         setConvertError(null);
       } catch {
-        setConvertError("无法转换，单位不兼容或未被支持");
+        setConvertError(t("conversion.queryFailedPrefix") + t("conversion.processEq"));
       }
     }
   }, [symbols, defaultValue, defaultFrom, defaultTo]);
@@ -152,7 +156,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
     const { value, from, to } = form.getValues();
     const v = Number(value);
     if (!from || !to || Number.isNaN(v)) {
-      setConvertError("请输入有效数值并选择单位");
+      setConvertError(t("conversion.queryFailedPrefix"));
       return;
     }
     try {
@@ -165,7 +169,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
           input_value: String(value),
           to_unit: to,
           output_value: String(out),
-          lang_code: "zh",
+          lang_code: locale,
         };
         const { data: rows } = await supabase
           .from("unit_conversion_logs")
@@ -202,16 +206,16 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
     if (!val) return;
     try {
       await navigator.clipboard.writeText(String(val));
-      toast.success("复制成功");
+      toast.success(t("conversion.copyResultAria"));
     } catch {
-      toast.error("复制失败");
+      toast.error(t("conversion.queryFailedPrefix"));
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title ?? `${categoryZh || category} 单位换算器`}</CardTitle>
+        <CardTitle>{title ?? `${(t as any)(`categories.${category}`) || category} ${t("categoryPage.titleSuffix")}`}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
         <Form {...form}>
@@ -221,11 +225,11 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                 name="from"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>从：</FormLabel>
+                    <FormLabel>{t("conversion.fromLabel")}</FormLabel>
                     <FormControl>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger className="h-12 px-4 text-base" disabled={loading || symbols.length === 0 || !!selectDisabled}>
-                          <SelectValue placeholder="选择来源单位" />
+                          <SelectValue placeholder={t("conversion.selectSource")} />
                         </SelectTrigger>
                         <SelectContent>
                           {symbols.map((a) => (
@@ -250,7 +254,7 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     form.setValue("to", f ?? "");
                   }}
                   disabled={!form.getValues("from") || !form.getValues("to")}
-                  aria-label="交换"
+                  aria-label={t("conversion.swapAria")}
                   type="button"
                   className="h-12 w-12"
                 >
@@ -263,11 +267,11 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                 name="to"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>到：</FormLabel>
+                    <FormLabel>{t("conversion.toLabel")}</FormLabel>
                     <FormControl>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger className="h-12 px-4 text-base" disabled={loading || symbols.length === 0 || !!selectDisabled}>
-                          <SelectValue placeholder="选择目标单位" />
+                          <SelectValue placeholder={t("conversion.selectTarget")} />
                         </SelectTrigger>
                         <SelectContent>
                           {symbols.map((a) => (
@@ -288,31 +292,31 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>数量：</FormLabel>
+                    <FormLabel>{t("conversion.quantity")}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="请输入数值" className="h-12 text-base" {...field} />
+                      <Input type="number" placeholder={t("conversion.inputPlaceholder")} className="h-12 text-base" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormItem className="flex items-end">
-                <Button size="lg" className="h-12 w-full md:w-44 text-base" disabled={loading || symbols.length < 1} type="button" onClick={onConvert}>转换</Button>
+                <Button size="lg" className="h-12 w-full md:w-44 text-base" disabled={loading || symbols.length < 1} type="button" onClick={onConvert}>{t("conversion.convert")}</Button>
               </FormItem>
             </CardFooter>
 
-            {error && <CardFooter className="p-0 text-sm text-destructive">查询失败：{error}</CardFooter>}
+            {error && <CardFooter className="p-0 text-sm text-destructive">{t("conversion.queryFailedPrefix")}{error}</CardFooter>}
             {convertError && <CardFooter className="p-0 text-sm text-destructive">{convertError}</CardFooter>}
 
             <CardFooter className="grid gap-2 p-0">
-              <Label>结果：</Label>
+              <Label>{t("conversion.resultLabel")}</Label>
               <InputGroup className="h-12 text-base">
                 <InputGroupInput readOnly value={(() => {
                   const { value, from, to } = form.getValues();
                   return result !== "" ? `${value} ${from} = ${result} ${to}` : "";
                 })()} />
                 <InputGroupAddon align="inline-end">
-                  <InputGroupButton variant="ghost"  size="icon-sm" aria-label="复制结果" onClick={copyResult}>
+                  <InputGroupButton variant="ghost"  size="icon-sm" aria-label={t("conversion.copyResultAria")} onClick={copyResult}>
                     <Copy className="h-4 w-4" />
                   </InputGroupButton>
                 </InputGroupAddon>
@@ -329,9 +333,9 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     <div className="text-lg">{value} {fromName} ({from}) =</div>
                     <div className="mt-2 text-4xl font-bold tracking-tight">{result} {toName}</div>
                     <div className="mt-3 text-sm text-muted-foreground">
-                      即：{value}{fromName}等于{result}{toName}
+                      {t("conversion.equalsInline", { value, from: fromName, result, to: toName })}
                       <span className="mx-2">|</span>
-                      <a href={`/${encodeURIComponent(category)}/${encodeURIComponent(to)}-to-${encodeURIComponent(from)}`}>{toName}与{fromName}换算</a>
+                      <a href={`/${encodeURIComponent(locale)}/${encodeURIComponent(category)}/${encodeURIComponent(to)}-to-${encodeURIComponent(from)}`}>{t("conversion.linkReverse", { to: toName, from: fromName })}</a>
                     </div>
                   </div>
                 );
@@ -354,53 +358,34 @@ export default function ConversionCard({ title, defaultFrom, defaultTo, selectDi
                     if (abbrs.includes(from) && abbrs.includes(to)) { measure = m; break; }
                   }
                 } catch {}
-                const measureZhMap: Record<string, string> = {
-                  speed: "速度",
-                  current: "电流",
-                  angle: "角度",
-                  pressure: "压力",
-                  frequency: "频率",
-                  volumeFlowRate: "体积流量",
-                  digital: "数据存储",
-                  temperature: "温度",
-                  volume: "体积",
-                  energy: "能量",
-                  illuminance: "照度",
-                  length: "长度",
-                  time: "时间",
-                  voltage: "电压",
-                  power: "功率",
-                  mass: "质量",
-                  area: "面积",
-                };
-                const measureZh = (measureZhMap[measure] ?? measure) || "单位";
+                const measureName = (t as any)(`categories.${measure}`) || measure;
                 return (
                   <div className="grid gap-4">
                     <div>
-                      问题：
+                      {t("conversion.questionTitle")}
                       <div className="mt-2">
-                        {value} {fromName}（单位符号是：{from}）等于多少{toName}（单位符号是：{to}）？
+                        {t("conversion.questionText", { value, fromName, from, toName, to })}
                       </div>
                     </div>
                     <div>
-                      背景说明：
+                      {t("conversion.backgroundTitle")}
                       <div className="mt-2">
-                        {fromName}（单位符号是：{from}）和{toName}（单位符号是：{to}）是{measureZh}单位，它们之间的换算关系是：
-                        <div className="mt-1">1 {from} = {ratio} {to}。</div>
+                        {t("conversion.backgroundText", { fromName, from, toName, to, measureName })}
+                        <div className="mt-1">{t("conversion.backgroundEq", { from, ratio, to })}</div>
                       </div>
                     </div>
                     <div>
-                      计算过程：
+                      {t("conversion.processTitle")}
                       <div className="mt-2">
-                        要将 {value} {from} 转换为 {to}，我们可以通过以下公式计算：
-                        <div className="mt-1">{value}{from} = {value} × {ratio}{to} = {result}{to}</div>
+                        {t("conversion.processText", { value, from, to })}
+                        <div className="mt-1">{t("conversion.processEq", { value, from, ratio, result, to })}</div>
                       </div>
                     </div>
                     <div>
-                      结论：
+                      {t("conversion.conclusionTitle")}
                       <div className="mt-2">
-                        因此，{value} {fromName} 换算成 {toName} 的答案是：
-                        <div className="mt-1">{value} {fromName} 等于 {result} {toName}。</div>
+                        {t("conversion.conclusionText", { value, fromName, toName })}
+                        <div className="mt-1">{t("conversion.conclusionEq", { value, fromName, result, toName })}</div>
                       </div>
                     </div>
                   </div>
