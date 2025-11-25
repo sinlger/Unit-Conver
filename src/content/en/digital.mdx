@@ -1,0 +1,96 @@
+# Data Storage and Transfer Unit Converter
+
+When using computers, smartphones, cloud storage, or internet services, have you ever wondered:
+
+- Why does a “100 Mbps broadband” connection only give a download speed of about **12.5 MB/s**?  
+- Why does a hard drive labeled **1 TB** show less than **1000 GB** in your operating system?  
+- What’s the actual difference between **Kb** and **KB**?
+
+The root cause lies in two common sources of confusion:  
+1. The distinction between **bits (bit)** and **bytes (Byte)**  
+2. The difference between **decimal (SI)** and **binary (IEC)** standards  
+
+To solve this problem, we’ve developed a professional **Data Unit Conversion Tool** that supports intelligent conversion among the following **10 commonly used units**:
+
+- **Bit series (lowercase)**: b (bit), Kb, Mb, Gb, Tb  
+- **Byte series (uppercase)**: B (Byte), KB, MB, GB, TB  
+
+✅ By default, the tool uses the **decimal (SI) standard** (1 KB = 1,000 B), but also offers an optional **binary (IEC) mode** (1 KiB = 1,024 B) to suit different scenarios.
+
+## 🔁 Core Conversion Formulas
+
+### 1. Relationship Between Bits and Bytes
+- **1 Byte (B) = 8 bits (b)**  
+  Therefore:  
+  - `B = b ÷ 8`  
+  - `b = B × 8`
+
+### 2. Decimal (SI) Standard  
+*(Used for hard drives, network bandwidth, etc.)*
+
+| Unit        | Conversion Relationship      |
+|-------------|------------------------------|
+| 1 Kb        | = 1,000 b                    |
+| 1 Mb        | = 1,000 Kb                   |
+| 1 Gb        | = 1,000 Mb                   |
+| 1 Tb        | = 1,000 Gb                   |
+| 1 KB        | = 1,000 B                    |
+| 1 MB        | = 1,000 KB                   |
+| 1 GB        | = 1,000 MB                   |
+| 1 TB        | = 1,000 GB                   |
+
+### 3. Binary (IEC) Standard  
+*(Used by operating systems, memory, etc.—optional mode)*
+
+| Unit        | Conversion Relationship      |
+|-------------|------------------------------|
+| 1 KiB       | = 1,024 B                    |
+| 1 MiB       | = 1,024 KiB                  |
+| 1 GiB       | = 1,024 MiB                  |
+| 1 TiB       | = 1,024 GiB                  |
+
+💡 **Quick Tip**:  
+- **Network bandwidth** (e.g., 100 Mbps) uses **lowercase b** for **bits**  
+- **File sizes** (e.g., 500 MB) use **uppercase B** for **Bytes**  
+→ Hence: **100 Mbps ÷ 8 = 12.5 MB/s** (maximum theoretical download speed)
+
+## 💾 Common Data Unit Reference Table  
+*(Based on decimal SI standard: 1 KB = 1,000 B, 1 Kb = 1,000 b)*
+
+| Unit | bits (b)     | Bytes (B)    | KB         | MB         | GB         | TB         |
+|------|--------------|--------------|------------|------------|------------|------------|
+| 1 b  | 1            | 0.125        | 1.25e-4    | 1.25e-7    | 1.25e-10   | 1.25e-13   |
+| 1 Kb | 1,000        | 125          | 0.125      | 1.25e-4    | 1.25e-7    | 1.25e-10   |
+| 1 Mb | 1e6          | 125,000      | 125        | 0.125      | 1.25e-4    | 1.25e-7    |
+| 1 Gb | 1e9          | 1.25e8       | 125,000    | 125        | 0.125      | 1.25e-4    |
+| 1 Tb | 1e12         | 1.25e11      | 1.25e8     | 125,000    | 125        | 0.125      |
+| 1 B  | 8            | 1            | 0.001      | 1e-6       | 1e-9       | 1e-12      |
+| 1 KB | 8,000        | 1,000        | 1          | 0.001      | 1e-6       | 1e-9       |
+| 1 MB | 8e6          | 1e6          | 1,000      | 1          | 0.001      | 1e-6       |
+| 1 GB | 8e9          | 1e9          | 1e6        | 1,000      | 1          | 0.001      |
+| 1 TB | 8e12         | 1e12         | 1e9        | 1e6        | 1,000      | 1          |
+
+✅ All values in this table are calculated using the **decimal SI standard**.  
+✅ For binary conversions (e.g., 1 GB = 1,024 MB), please switch to **“Binary Mode”** in the tool.
+
+## ✨ Tool Advantages
+
+- **Clear distinction between bit and Byte**: Automatically recognizes **b** vs. **B** to prevent common errors  
+- **Dual-standard support**: Toggle instantly between **decimal (SI)** and **binary (IEC)** modes  
+- **Universal applicability**: Ideal for network speed tests, hard drive purchases, file transfers, and computer science learning  
+- **High-precision calculations**: Supports scientific notation with sufficient significant digits  
+- **Completely free · No ads · No registration required**  
+- **Responsive interface**: Works seamlessly on smartphones, tablets, and desktops
+
+## 🌐 Try It Now!
+
+Visit our website: [www.data-unit-converter.example.com](https://www.data-unit-converter.example.com)  
+Enter a value → Select source unit (e.g., **Mb**) and target unit (e.g., **MB**) → Get an accurate result instantly!
+
+💾 Say goodbye to questions like:  
+> “Why is my download so slow?”  
+> “Where did my hard drive space go?”
+
+Whether you’re testing internet speed, buying storage, transferring files, or studying computer fundamentals—this tool helps you understand data units with confidence.
+
+🚀 Give it a try today—make every bit clearly visible!

@@ -1,0 +1,85 @@
+# Time Unit Conversion Tool
+
+Whether you're a programmer debugging code, a scientist recording experimental data, a project manager scheduling timelines, or a student solving physics homework, converting between time units is a frequent and essential task. However, the range spans from extremely short **nanoseconds (ns)** to vast durations like **years**, with complex and error-prone conversion relationships.
+
+To address this, we introduce an all-in-one **Time Unit Converter** that supports instant, high-precision conversion among the following **10 commonly used time units**:
+
+- Nanosecond (ns)  
+- Microsecond (mu) — equivalent to μs (1 mu = 1 microsecond)  
+- Millisecond (ms)  
+- Second (s)  
+- Minute (min)  
+- Hour (h)  
+- Day (d)  
+- Week (week)  
+- Month (month)  
+- Year (year)  
+
+Simply enter a value, select the source and target units, and get an accurate result in seconds!
+
+## 🔁 Core Time Unit Conversion Formulas
+
+💡 **Note**: For simplicity, this tool uses average values for “month” and “year”:  
+- **1 year = 365.25 days** (accounts for leap years)  
+- **1 month = 365.25 ÷ 12 ≈ 30.4375 days**
+
+### Step-by-Step Conversion Chain
+
+| Conversion     | Formula                     |
+|----------------|-----------------------------|
+| ns → mu        | `mu = ns ÷ 1,000`           |
+| mu → ms        | `ms = mu ÷ 1,000`           |
+| ms → s         | `s = ms ÷ 1,000`            |
+| s → min        | `min = s ÷ 60`              |
+| min → h        | `h = min ÷ 60`              |
+| h → d          | `d = h ÷ 24`                |
+| d → week       | `week = d ÷ 7`              |
+| d → month      | `month = d ÷ 30.4375`       |
+| d → year       | `year = d ÷ 365.25`         |
+
+### Base Reference: All Units in Seconds
+
+| Unit        | Equivalent in Seconds (s)     |
+|-------------|-------------------------------|
+| 1 ns        | 1e-9 s                        |
+| 1 mu (μs)   | 1e-6 s                        |
+| 1 ms        | 0.001 s                       |
+| 1 s         | 1 s                           |
+| 1 min       | 60 s                          |
+| 1 h         | 3,600 s                       |
+| 1 d         | 86,400 s                      |
+| 1 week      | 604,800 s                     |
+| 1 month     | ≈ 2,629,746 s                 |
+| 1 year      | ≈ 31,557,600 s                |
+
+## ⏱️ Common Time Unit Conversion Reference Table
+
+| ns          | mu         | ms       | s        | min      | h        | d        | week     | month    | year     |
+|-------------|------------|----------|----------|----------|----------|----------|----------|----------|----------|
+| 1,000       | 1          | 0.001    | 1e-6     | 1.67e-8  | 2.78e-10 | 1.16e-11 | 1.65e-12 | 3.80e-13 | 3.17e-14 |
+| 1,000,000   | 1,000      | 1        | 0.001    | 1.67e-5  | 2.78e-7  | 1.16e-8  | 1.65e-9  | 3.80e-10 | 3.17e-11 |
+| 1e9         | 1e6        | 1,000    | 1        | 0.0167   | 2.78e-4  | 1.16e-5  | 1.65e-6  | 3.80e-7  | 3.17e-8  |
+| 6e10        | 6e7        | 60,000   | 60       | 1        | 0.0167   | 6.94e-4  | 9.92e-5  | 2.28e-5  | 1.90e-6  |
+| 3.6e12      | 3.6e9      | 3,600,000| 3,600    | 60       | 1        | 0.0417   | 5.95e-3  | 1.37e-3  | 1.14e-4  |
+| 8.64e13     | 8.64e10    | 86,400,000| 86,400  | 1,440    | 24       | 1        | 0.1429   | 0.0329   | 2.74e-3  |
+| 6.048e14    | 6.048e11   | 604,800,000| 604,800| 10,080   | 168      | 7        | 1        | 0.230    | 0.0192   |
+| 2.6297e15   | 2.6297e12  | 2.6297e9 | 2,629,746| 43,829   | 730.5    | 30.4375  | 4.348    | 1        | 0.0833   |
+| 3.15576e16  | 3.15576e13 | 3.15576e10| 31,557,600| 525,960 | 8,766    | 365.25   | 52.18    | 12       | **1**    |
+
+✅ The last row shows the equivalent values for **1 year** (based on 365.25 days).  
+✅ In this tool, **“mu” represents microsecond (μs)**, i.e., **10⁻⁶ seconds**.
+
+## ✨ Tool Highlights
+
+- **Full coverage of 10 units**: seamlessly switch from nanosecond-scale computer timing to multi-year planning  
+- **Balances scientific and everyday needs**: serves engineers, students, project managers, and more  
+- **High-precision calculations**: uses internationally accepted conversion factors and supports scientific notation input  
+- **Completely free · No ads · No registration required**  
+- **Responsive design**: works smoothly on mobile phones, tablets, and desktop computers
+
+## 🌐 Try It Now!
+
+⏳ Stop letting time conversions slow you down!  
+Whether you're optimizing code performance, calculating half-lives, scheduling projects, or even comprehending the age of the universe—this tool is your reliable assistant.
+
+⏱️ Take precise control of every moment—try it today!

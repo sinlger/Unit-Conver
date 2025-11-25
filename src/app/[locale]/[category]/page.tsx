@@ -4,7 +4,7 @@ import path from "node:path";
 import ConversionCard from "@/components/units/ConversionCard";
 import CategoryAside from "@/components/aside/CategoryAside";
 import GuessYouLike from "@/components/recommend/GuessYouLike";
-import { CATEGORY_ARTICLES } from "@/content/categoryMap";
+import { CATEGORY_ARTICLES, getCategoryArticleLoader } from "@/content/categoryMap";
 import type { Metadata } from "next";
 import { StructuredData } from "@/components/structured-data/StructuredData";
 import { createConversionToolSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
@@ -158,15 +158,10 @@ export default async function ConvertCategoryPage({ params }: { params: Promise<
 
   let ArticleComp: any = null;
   try {
-    const modLoc = await import(`@/content/${locale}/${category}.mdx`);
-    ArticleComp = modLoc?.default ?? null;
-  } catch {
-    const loader = CATEGORY_ARTICLES[category];
-    if (typeof loader === "function") {
-      const mod = await loader();
-      ArticleComp = mod?.default ?? null;
-    }
-  }
+    const loader = getCategoryArticleLoader(locale, category);
+    const mod = await loader();
+    ArticleComp = mod?.default ?? null;
+  } catch {}
 
   // 生成分类页面的结构化数据
   const categoryName = categoryTitle;

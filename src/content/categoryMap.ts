@@ -17,3 +17,10 @@ export const CATEGORY_ARTICLES: Record<string, () => Promise<any>> = {
   power: () => import("@/content/power.mdx"),
   speed: () => import("@/content/speed.mdx"),
 };
+
+export function getCategoryArticleLoader(locale: string, category: string): () => Promise<any> {
+  if (locale === "en") {
+    return () => import(`@/content/en/${category}.mdx`).catch(() => import(`@/content/${category}.mdx`));
+  }
+  return () => import(`@/content/${category}.mdx`);
+}

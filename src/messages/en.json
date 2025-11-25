@@ -31,7 +31,7 @@
     "home": "Home",
     "data": "Data",
     "unitConversionSuffix": "Unit Conversion",
-    "convertJoin": "to",
+    "convertJoin": " to ",
     "loading": "Loading..."
   },
   "categoryPage": {

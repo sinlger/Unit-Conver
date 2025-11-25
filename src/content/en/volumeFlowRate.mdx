@@ -1,0 +1,117 @@
+# Volumetric Flow Rate Unit Conversion Tool
+
+Whether you're an engineer designing piping systems, a chemist controlling reaction flow rates, a barista calibrating espresso extraction parameters, or a homeowner calculating faucet flow—converting volumetric flow rate units is essential. However, the landscape is cluttered: from scientific standards like **m³/s**, to kitchen recipes using **tsp/s**, industrial norms like **gal/min** and **ft³/h**, and countless prefixes and conversion factors—making manual calculations highly error-prone.
+
+To solve this, we proudly introduce an **all-in-one Volumetric Flow Rate Converter**, supporting instant, high-precision conversion among the following **42 commonly used flow units**:
+
+### Metric Flow Units:
+- mm³/s, cm³/s, ml/s, cl/s, dl/s, l/s, l/min, l/h  
+- kl/s, kl/min, kl/h  
+- m³/s, m³/min, m³/h  
+- km³/s
+
+### U.S. Kitchen & Liquid Flow Units:
+- tsp/s, Tbs/s, fl-oz/s, cup/s, pnt/s, qt/s, gal/s  
+  (and their /min and /h variants)
+
+### Cubic Imperial/U.S. Flow Units:
+- in³/s, ft³/s, yd³/s  
+  (and their /min and /h variants)
+
+Just enter a value, select the source and target units, and get a high-precision result instantly! Make complex flow conversions simple, efficient, and error-free.
+
+## 🔁 Core Conversion Formulas
+
+### 1. Metric Base (referenced to cubic meters per second, m³/s)
+
+| Relationship        | Conversion                     |
+|---------------------|--------------------------------|
+| 1 m³ = 1,000 L      | → 1 m³/s = 1,000 L/s           |
+| 1 L = 1,000 mL = 1,000 cm³ | → 1 L/s = 1,000 cm³/s     |
+| 1 kl = 1,000 L      | → 1 kl/s = 1 m³/s              |
+| Time: 1 min = 60 s, 1 h = 3,600 s |                        |
+
+Thus:  
+- **L/min = L/s × 60**  
+- **m³/h = m³/s × 3,600**
+
+### 2. U.S. Liquid Units (based on U.S. gallon)
+
+| Unit                | Equivalent in Liters (L)       |
+|---------------------|--------------------------------|
+| 1 tsp (teaspoon)    | ≈ 0.00492892 L                 |
+| 1 Tbs (tablespoon)  | = 3 tsp ≈ 0.0147868 L          |
+| 1 fl-oz (fluid ounce)| ≈ 0.0295735 L                  |
+| 1 cup               | = 8 fl-oz ≈ 0.236588 L         |
+| 1 pnt (pint)        | = 2 cups ≈ 0.473176 L          |
+| 1 qt (quart)        | = 2 pints ≈ 0.946353 L         |
+| 1 gal (gallon)      | = 4 quarts ≈ 3.78541 L         |
+
+💡 All **/s**, **/min**, and **/h** units are derived by multiplying the base volume by the reciprocal of time.
+
+### 3. Cubic Imperial Units
+
+| Unit      | Equivalent in Cubic Meters (m³)     |
+|-----------|--------------------------------------|
+| 1 in³     | (0.0254)³ m³ ≈ 1.6387×10⁻⁵ m³       |
+| 1 ft³     | 1,728 in³ ≈ 0.0283168 m³            |
+| 1 yd³     | 27 ft³ ≈ 0.764555 m³                |
+
+## 📊 Common Flow Rate Reference Table  
+*(Based on 1 L/s)*
+
+| Unit          | Equivalent Value (relative to 1 L/s) |
+|---------------|---------------------------------------|
+| **Metric**    |                                       |
+| mm³/s         | 1,000,000                             |
+| cm³/s         | 1,000                                 |
+| ml/s          | 1,000                                 |
+| cl/s          | 100                                   |
+| dl/s          | 10                                    |
+| L/s           | 1                                     |
+| L/min         | 60                                    |
+| L/h           | 3,600                                 |
+| m³/s          | 0.001                                 |
+| m³/min        | 0.06                                  |
+| m³/h          | 3.6                                   |
+| kl/s          | 0.001                                 |
+| **U.S. Liquid** |                                     |
+| tsp/s         | ≈ 202.884                             |
+| Tbs/s         | ≈ 67.628                              |
+| fl-oz/s       | ≈ 33.814                              |
+| cup/s         | ≈ 4.227                               |
+| pnt/s         | ≈ 2.113                               |
+| qt/s          | ≈ 1.057                               |
+| gal/s         | ≈ 0.264172                            |
+| gal/min       | ≈ 15.850                              |
+| gal/h         | ≈ 951.0                               |
+| **Cubic Imperial** |                                  |
+| in³/s         | ≈ 61.0237                             |
+| ft³/s         | ≈ 0.0353147                           |
+| ft³/min       | ≈ 2.11888                             |
+| ft³/h         | ≈ 127.133                             |
+| yd³/s         | ≈ 0.001308                            |
+| yd³/h         | ≈ 4.7086                              |
+
+## ✅ Practical Examples
+
+- **Household faucet flow** ≈ **0.1–0.2 L/s** (i.e., **6–12 L/min**)  
+- **Automotive fuel pump** ≈ **100 L/h**  
+- **Industrial water pump** ≈ **100 m³/h**  
+- **HVAC airflow** often uses **cfm (ft³/min)**; **1 cfm ≈ 0.4719 L/s**
+
+## ✨ Tool Advantages
+
+- **42 units covered**: spans scientific, engineering, culinary, industrial, and hydraulic applications  
+- **Smart U.S./Imperial distinction**: defaults to U.S. liquid units, with optional UK gallon support  
+- **Complete time granularity**: supports **/s**, **/min**, and **/h** for all applicable units  
+- **High-precision engine**: uses international standard coefficients (e.g., 1 gal = 3.785411784 L)  
+- **Completely free · No ads · No registration required**  
+- **Responsive interface**: works smoothly on mobile phones, tablets, and desktop computers
+
+## 🌐 Try It Now!
+
+💧 Stop letting flow unit conversions hold you back!  
+Whether you're designing irrigation systems, tuning chemical reactors, reading equipment manuals, or replicating overseas recipes—this tool is your ultimate assistant.
+
+⏱️ Take precise control of every drop in motion—try it today!
