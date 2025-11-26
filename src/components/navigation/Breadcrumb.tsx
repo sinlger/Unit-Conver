@@ -89,11 +89,11 @@ export default function Breadcrumb() {
           const fromUnit = m ? m[2] : fromRaw;
           const fromLabel = namesMap[fromUnit] ?? fromUnit;
           const toLabel = namesMap[toRaw] ?? toRaw;
-          list.push({ href: acc, label: `${val}${fromLabel}${t("breadcrumb.convertJoin")}${toLabel}` });
+          list.push({ href: acc, label: `${val} ${fromLabel} ${t("breadcrumb.convertJoin")} ${toLabel}` });
         } else {
           const fromLabel = namesMap[fromRaw] ?? fromRaw;
           const toLabel = namesMap[toRaw] ?? toRaw;
-          list.push({ href: acc, label: `${fromLabel}${t("breadcrumb.convertJoin")}${toLabel}` });
+          list.push({ href: acc, label: `${fromLabel} ${t("breadcrumb.convertJoin")} ${toLabel}` });
         }
       } else {
         const labelBase = p === "db" ? t("breadcrumb.data") : zhMap[p] ?? t(`categories.${p}` as any);
