@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 export async function GET() {
   const jsonHeaders = { "content-type": "application/json", "cache-control": "no-store" } as const;
   const env = {
-    SUPABASE_URL: process.env.SUPABASE_URL ?? "",
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? "set" : "",
+    SUPABASE_URL: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    SUPABASE_SERVICE_ROLE_KEY: (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ? "set" : "",
     NODE_ENV: process.env.NODE_ENV ?? "",
   };
 
@@ -48,8 +48,8 @@ export async function GET() {
     const url = (env.SUPABASE_URL).replace(/\/$/, "") + "/rest/v1/unit_dictionary?select=category&limit=1";
     const res = await fetch(url, {
       headers: {
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY || ""}`,
+        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
         Accept: "application/json",
       },
     });
