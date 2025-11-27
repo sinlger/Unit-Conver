@@ -91,5 +91,76 @@
     "conclusionText": "Therefore, {value} {fromName} equals:",
     "conclusionEq": "{value} {fromName} equals {result} {toName}.",
     "tableTitleJoin": "Convert {from} to {to}"
+  },
+  "seo": {
+    "titleDefault": "Unit Converter",
+    "titleTemplate": "%s | Unit Converter",
+    "description": "A professional unit conversion tool supporting conversions for length, area, volume, mass, temperature, pressure, power, speed, frequency, electric current, voltage, resistance, energy, illuminance, angle, time, digital storage, and flow rate.",
+    "keywords": [
+      "unit converter",
+      "length conversion",
+      "area conversion",
+      "volume conversion",
+      "mass conversion",
+      "temperature conversion",
+      "pressure conversion",
+      "power conversion",
+      "speed conversion",
+      "frequency conversion",
+      "current conversion",
+      "voltage conversion",
+      "resistance conversion",
+      "energy conversion",
+      "illuminance conversion",
+      "angle conversion",
+      "time conversion",
+      "data storage conversion",
+      "flow rate conversion"
+    ],
+    "openGraphTitle": "Unit Converter",
+    "openGraphDescription": "A professional unit conversion tool supporting conversions for length, area, volume, mass, temperature, pressure, power, speed, frequency, electric current, voltage, resistance, energy, illuminance, angle, time, digital storage, and flow rate.",
+    "openGraphSiteName": "Unit Converter",
+    "openGraphLocale": "en_US",
+    "twitterTitle": "Unit Converter",
+    "twitterDescription": "A professional unit conversion tool supporting conversions for length, area, volume, mass, temperature, pressure, power, speed, frequency, electric current, voltage, resistance, energy, illuminance, angle, time, digital storage, and flow rate."
+  },
+  "pairSeo": {
+    "title": "How much is {value} {fromName} in {toName}? | {categoryName} Unit Conversion Calculator",
+    "description": "Calculate online how much {value} {fromName} equals in {toName}, with detailed conversion steps and process, including the conversion formula from {fromName} to {toName} and example explanations.",
+    "keywords": [
+      "{value}{from} to {to}",
+      "{from} to {to}",
+      "how much is {value} {from} in {to}",
+      "convert {value} {fromName} to {toName}",
+      "{fromName} to {toName}",
+      "how much is {value} {fromName} in {toName}",
+      "unit conversion",
+      "{categoryName}",
+      "{categoryName} unit conversion"
+    ],
+    "openGraphTitle": "How much is {value} {fromName} in {toName}?",
+    "openGraphDescription": "Calculate online how much {value} {fromName} equals in {toName}, including detailed steps and the conversion formula from {fromName} to {toName}."
+  },
+  "structured": {
+    "mathSolver": {
+      "name": "{value}{fromName} to {toName} Calculator",
+      "description": "Calculate online how much {value} {fromName} equals in {toName}, with detailed steps and the conversion formula from {fromName} to {toName}.",
+      "educationalLevel": "intermediate",
+      "inputTypes": ["unit conversion", "mathematical calculation"],
+      "teaches": [
+        "{fromName} unit",
+        "{toName} unit",
+        "{categoryName} unit conversion",
+        "math conversion"
+      ],
+      "aboutName": "{fromName} to {toName} conversion",
+      "aboutDescription": "{categoryName} unit conversion tool"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "category": "{categoryName} Unit Conversion",
+      "pair": "{fromName} to {toName}",
+      "valuePair": "{value} {fromName} to {toName}"
+    }
   }
 }

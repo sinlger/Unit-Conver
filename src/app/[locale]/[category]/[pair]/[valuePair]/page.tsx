@@ -16,8 +16,8 @@ import en from "@/messages/en.json";
 export const revalidate = 86400; // 24小时
 export const dynamicParams = true;
 
-export async function generateMetadata({ params }: { params: Promise<{ category?: string; pair?: string; valuePair?: string }> }): Promise<Metadata> {
-  const { category = "", pair = "", valuePair = "" } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale?: string; category?: string; pair?: string; valuePair?: string }> }): Promise<Metadata> {
+  const { locale = "zh", category = "", pair = "", valuePair = "" } = await params;
   
   let from = "";
   let to = "";
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
       .eq("category", category)
       .limit(1);
     const row = data?.[0] as { category?: string; category_zh?: string } | undefined;
-    if (row?.category_zh) categoryName = row.category_zh;
+    if (locale === "zh" && row?.category_zh) categoryName = row.category_zh;
   } catch {}
   
   // 获取单位名称（优先从构建期静态 JSON 读取，减少 supabase 调用）
@@ -64,23 +64,18 @@ export async function generateMetadata({ params }: { params: Promise<{ category?
     }
   } catch {}
   
+  const messages = locale === "en" ? (en as any) : (zh as any);
+  const vars = { value, fromName, toName, categoryName, from, to } as Record<string, string>;
+  const tpl = (s: string) => s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const pairSeo = messages.pairSeo as any;
+
   return {
-    title: `${value}${fromName}等于多少${toName}？ | ${categoryName}单位转换计算`,
-    description: `在线计算${value}${fromName}等于多少${toName}，详细的转换步骤和计算过程，包含${fromName}到${toName}的换算公式和实例说明。`,
-    keywords: [
-      `${value}${from}转${to}`, 
-      `${from}到${to}`, 
-      `${value}${from}等于多少${to}`,
-      `${value}${fromName}转${toName}`,
-      `${fromName}到${toName}`,
-      `${value}${fromName}等于多少${toName}`,
-      "单位转换", 
-      categoryName,
-      `${categoryName}单位换算`
-    ],
+    title: tpl(pairSeo.title),
+    description: tpl(pairSeo.description),
+    keywords: (pairSeo.keywords as string[]).map(tpl),
     openGraph: {
-      title: `${value}${fromName}等于多少${toName}？`,
-      description: `在线计算${value}${fromName}等于多少${toName}，包含详细的转换步骤和${fromName}到${toName}的换算公式`,
+      title: tpl(pairSeo.openGraphTitle),
+      description: tpl(pairSeo.openGraphDescription),
     },
   };
 }
@@ -225,34 +220,30 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
   const pairTitle = `${defaultValue}${fromName} ${messages.common?.unitConverter}`;
 
   // 创建增强的数学公式结构化数据 - 包含具体数值和翻译信息
+  const structured = messages.structured as any;
   const enhancedMathSolverSchema = {
     "@context": "https://schema.org",
     "@type": "MathSolver",
-    "name": `${defaultValue}${fromName}转${toName}计算器`,
-    "description": `在线计算${defaultValue}${fromName}等于多少${toName}，详细的转换步骤和计算过程，包含${fromName}到${toName}的换算公式和实例说明`,
+    "name": tpl(structured.mathSolver.name.replace("{value}", defaultValue)),
+    "description": tpl(structured.mathSolver.description.replace("{value}", defaultValue)),
     "url": `https://unit-converter.com/${category}/${pair}/${valuePair}`,
     "mathExpression": `${defaultValue}${from} = result * ${to}`,
-    "inputTypes": ["unit conversion", "mathematical calculation"],
-    "educationalLevel": "intermediate",
-    "teaches": [
-      `${fromName}单位`,
-      `${toName}单位`,
-      `${categoryName}单位转换`,
-      `数学换算`
-    ],
+    "inputTypes": (structured.mathSolver.inputTypes as string[]).map(tpl),
+    "educationalLevel": structured.mathSolver.educationalLevel,
+    "teaches": (structured.mathSolver.teaches as string[]).map(tpl),
     "about": {
       "@type": "Thing",
-      "name": `${fromName}到${toName}转换`,
-      "description": `${categoryName}单位转换工具`
+      "name": tpl(structured.mathSolver.aboutName),
+      "description": tpl(structured.mathSolver.aboutDescription)
     }
   };
 
   // 创建面包屑结构化数据 - 四级面包屑（使用翻译后的名称）
   const breadcrumbSchema = createBreadcrumbSchema([
-    { name: "首页", url: "https://unit-converter.com" },
-    { name: `${categoryName}单位转换`, url: `https://unit-converter.com/${category}` },
-    { name: `${fromName}转${toName}`, url: `https://unit-converter.com/${category}/${pair}` },
-    { name: `${defaultValue}${fromName}转${toName}`, url: `https://unit-converter.com/${category}/${pair}/${valuePair}` }
+    { name: tpl(structured.breadcrumb.home), url: "https://unit-converter.com" },
+    { name: tpl(structured.breadcrumb.category), url: `https://unit-converter.com/${category}` },
+    { name: tpl(structured.breadcrumb.pair), url: `https://unit-converter.com/${category}/${pair}` },
+    { name: tpl(structured.breadcrumb.valuePair.replace("{value}", defaultValue)), url: `https://unit-converter.com/${category}/${pair}/${valuePair}` }
   ]);
 
   return (

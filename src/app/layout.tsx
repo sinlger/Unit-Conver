@@ -1,4 +1,3 @@
-import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
@@ -21,33 +20,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-};
 
-export const metadata: Metadata = {
-  title: {
-    default: "单位转换器 | Unit Converter",
-    template: "%s | 单位转换器"  // 子页面标题模板
-  },
-  description: "专业的单位转换工具，支持长度、面积、体积、质量、温度、压力、功率、速度、频率、电流、电压、电阻、能量、照度、角度、时间、数字存储、流量等多种物理量单位转换。",
-  keywords: ["单位转换", "长度转换", "面积转换", "体积转换", "质量转换", "温度转换", "压力转换", "功率转换", "速度转换", "频率转换", "电流转换", "电压转换", "电阻转换", "能量转换", "照度转换", "角度转换", "时间转换", "数字存储转换", "流量转换"],
-  authors: [{ name: "Unit Converter Team" }],
-  robots: "index, follow",
-  openGraph: {
-    title: "单位转换器",
-    description: "专业的单位转换工具，支持长度、面积、体积、质量、温度、压力、功率、速度、频率、电流、电压、电阻、能量、照度、角度、时间、数字存储、流量等多种物理量单位转换。",
-    type: "website",
-    locale: "zh_CN",
-    siteName: "单位转换器",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "单位转换器",
-    description: "专业的单位转换工具，支持长度、面积、体积、质量、温度、压力、功率、速度、频率、电流、电压、电阻、能量、照度、角度、时间、数字存储、流量等多种物理量单位转换。",
-  },
-};
 
 
 

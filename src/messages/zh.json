@@ -91,5 +91,76 @@
     "conclusionText": "因此，{value} {fromName} 换算成 {toName} 的答案是：",
     "conclusionEq": "{value} {fromName} 等于 {result} {toName}。",
     "tableTitleJoin": "{from} 换算 {to}"
+  },
+  "seo": {
+    "titleDefault": "单位转换器",
+    "titleTemplate": "%s | 单位转换器",
+    "description": "专业的单位转换工具，支持长度、面积、体积、质量、温度、压力、功率、速度、频率、电流、电压、电阻、能量、照度、角度、时间、数字存储、流量等多种物理量单位转换。",
+    "keywords": [
+      "单位转换",
+      "长度转换",
+      "面积转换",
+      "体积转换",
+      "质量转换",
+      "温度转换",
+      "压力转换",
+      "功率转换",
+      "速度转换",
+      "频率转换",
+      "电流转换",
+      "电压转换",
+      "电阻转换",
+      "能量转换",
+      "照度转换",
+      "角度转换",
+      "时间转换",
+      "数字存储转换",
+      "流量转换"
+    ],
+    "openGraphTitle": "单位转换器",
+    "openGraphDescription": "专业的单位转换工具，支持长度、面积、体积、质量、温度、压力、功率、速度、频率、电流、电压、电阻、能量、照度、角度、时间、数字存储、流量等多种物理量单位转换。",
+    "openGraphSiteName": "单位转换器",
+    "openGraphLocale": "zh_CN",
+    "twitterTitle": "单位转换器",
+    "twitterDescription": "专业的单位转换工具，支持长度、面积、体积、质量、温度、压力、功率、速度、频率、电流、电压、电阻、能量、照度、角度、时间、数字存储、流量等多种物理量单位转换。"
+  },
+  "pairSeo": {
+    "title": "{value}{fromName}等于多少{toName}？ | {categoryName}单位转换计算",
+    "description": "在线计算{value}{fromName}等于多少{toName}，详细的转换步骤和计算过程，包含{fromName}到{toName}的换算公式和实例说明。",
+    "keywords": [
+      "{value}{from}转{to}",
+      "{from}到{to}",
+      "{value}{from}等于多少{to}",
+      "{value}{fromName}转{toName}",
+      "{fromName}到{toName}",
+      "{value}{fromName}等于多少{toName}",
+      "单位转换",
+      "{categoryName}",
+      "{categoryName}单位换算"
+    ],
+    "openGraphTitle": "{value}{fromName}等于多少{toName}？",
+    "openGraphDescription": "在线计算{value}{fromName}等于多少{toName}，包含详细的转换步骤和{fromName}到{toName}的换算公式"
+  },
+  "structured": {
+    "mathSolver": {
+      "name": "{value}{fromName}转{toName}计算器",
+      "description": "在线计算{value}{fromName}等于多少{toName}，详细的转换步骤和计算过程，包含{fromName}到{toName}的换算公式和实例说明",
+      "educationalLevel": "中级",
+      "inputTypes": ["单位转换", "数学计算"],
+      "teaches": [
+        "{fromName}单位",
+        "{toName}单位",
+        "{categoryName}单位转换",
+        "数学换算"
+      ],
+      "aboutName": "{fromName}到{toName}转换",
+      "aboutDescription": "{categoryName}单位转换工具"
+    },
+    "breadcrumb": {
+      "home": "首页",
+      "category": "{categoryName}单位转换",
+      "pair": "{fromName}转{toName}",
+      "valuePair": "{value}{fromName}转{toName}"
+    }
   }
 }
