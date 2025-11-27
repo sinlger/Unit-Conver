@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ItemGroup, Item, ItemContent, ItemTitle, ItemDescription, ItemSeparator } from "@/components/ui/item";
 import ConversionTable from "@/components/units/ConversionTable";
 import type { Metadata } from "next";
-import { StructuredData, createMathFormulaSchema, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
+import { StructuredData, createBreadcrumbSchema } from "@/components/structured-data/StructuredData";
 import zh from "@/messages/zh.json";
 import en from "@/messages/en.json";
 
@@ -221,6 +221,8 @@ export default async function ConvertWithValuePage({ params }: { params: Promise
 
   // 创建增强的数学公式结构化数据 - 包含具体数值和翻译信息
   const structured = messages.structured as any;
+  const vars = { value: defaultValue, fromName, toName, categoryName, from, to } as Record<string, string>;
+  const tpl = (s: string) => s.replace(/\{(\w+)\}/g, (_: string, k: string) => vars[k] ?? "");
   const enhancedMathSolverSchema = {
     "@context": "https://schema.org",
     "@type": "MathSolver",

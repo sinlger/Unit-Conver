@@ -13,14 +13,50 @@ import zh from "@/messages/zh.json";
 import en from "@/messages/en.json";
 
 
-export async function generateMetadata({ params }: { params: Promise<{ category?: string; pair?: string }> }): Promise<Metadata> {
-  const { category = "", pair = "" } = await params;
-  const [from, to] = pair.split("-to-").map(decodeURIComponent);
+export async function generateMetadata({ params }: { params: Promise<{ locale?: string; category?: string; pair?: string }> }): Promise<Metadata> {
+  const { locale = "zh", category = "", pair = "" } = await params;
+  let from = "";
+  let to = "";
+  const value = "1";
+  if (pair) {
+    const parts = pair.split("-to-").map(decodeURIComponent);
+    from = parts[0] ?? "";
+    to = parts[1] ?? "";
+  }
+  let categoryName = category;
+  try {
+    const { data } = await supabaseServer
+      .from("unit_dictionary")
+      .select("category,category_zh")
+      .eq("category", category)
+      .limit(1);
+    const row = data?.[0] as { category?: string; category_zh?: string } | undefined;
+    if (locale === "zh" && row?.category_zh) categoryName = row.category_zh;
+  } catch {}
+  let fromName = from;
+  let toName = to;
+  try {
+    const pGuess = path.join(process.cwd(), "public", "data", encodeURIComponent(category), "guess.json");
+    const rawGuess = fs.readFileSync(pGuess, "utf-8");
+    const jsonGuess = JSON.parse(rawGuess) as { names?: Record<string, string> };
+    if (jsonGuess.names) {
+      fromName = jsonGuess.names[from] ?? fromName;
+      toName = jsonGuess.names[to] ?? toName;
+    }
+  } catch {}
+  const messages = locale === "en" ? en : zh;
+  const vars = { value, fromName, toName, categoryName, from, to } as Record<string, string>;
+  const tpl = (s: string) => s.replace(/\{(\w+)\}/g, (_: string, k: string) => vars[k] ?? "");
+  const pairSeo = messages.pairSeo;
 
   return {
-    title: `${from}转${to} | ${category}单位转换`,
-    description: `在线${from}到${to}转换工具，快速准确地将${from}转换为${to}，支持反向转换。`,
-    keywords: [`${from}转${to}`, `${from}到${to}`, "单位转换", category],
+    title: tpl(pairSeo.title),
+    description: tpl(pairSeo.description),
+    keywords: (pairSeo.keywords as string[]).map(tpl),
+    openGraph: {
+      title: tpl(pairSeo.openGraphTitle),
+      description: tpl(pairSeo.openGraphDescription),
+    },
   };
 }
 // ISR配置 - 转换对页面每6小时重新验证
