@@ -6,9 +6,7 @@ import type { NextRequest } from "next/server";
 import type { UnitConversionLog } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
-  const origin = process.env.NODE_ENV === "production"
-    ? process.env.NEXT_PUBLIC_SITE_URL ?? "https://unitconver.com"
-    : "http://localhost:3000";
+  const origin = req.nextUrl.origin;
   const locales = ["zh", "en"];
   const { data, error } = await supabaseServer
     .from("unit_dictionary")

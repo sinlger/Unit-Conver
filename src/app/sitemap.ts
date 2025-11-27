@@ -1,9 +1,11 @@
 import { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const origin = process.env.NODE_ENV === "production"
-    ? process.env.NEXT_PUBLIC_SITE_URL ?? "https://unitconver.com"
-    : "http://localhost:3000";
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") || (process.env.NODE_ENV === "production" ? "https" : "http");
+  const host = h.get("host") || "localhost:3000";
+  const origin = `${proto}://${host}`;
   const locales = ["zh", "en"];
 
   const entries: MetadataRoute.Sitemap = [];

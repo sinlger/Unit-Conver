@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabaseServer as supabase } from "@/lib/supabaseServer";
 import type { Metadata } from "next";
 import { StructuredData } from "@/components/structured-data/StructuredData";
 import { 
