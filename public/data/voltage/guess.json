@@ -1,1 +1,1 @@
-{"symbols":["V","kV","mV"],"logs":[{"from_unit":"V","input_value":1,"to_unit":"kV","output_value":0.001,"lang_code":"zh","conversion_count":1,"first_seen_at":"2025-11-22T14:55:07.042+00:00","last_seen_at":"2025-11-22T14:55:07.042+00:00"}],"names":{"kV":"千伏","mV":"毫伏","V":"伏特"}}
+{"symbols":["V","kV","mV"],"logs":[{"from_unit":"V","input_value":1,"to_unit":"kV","output_value":0.001,"lang_code":"zh","conversion_count":1,"first_seen_at":"2025-11-22T14:55:07.042+00:00","last_seen_at":"2025-11-22T14:55:07.042+00:00"}],"names":{"kV":"千伏","V":"伏特","mV":"毫伏"}}
